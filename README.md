@@ -1,4 +1,4 @@
-﻿![](https://www.dropbox.com/scl/fi/0518gpviina6h946vjjsx/B1tLab-logo.png?rlkey=sg2pcvvwykmrpprtppnc3as0d&st=zf9jj4nk&raw=1)
+﻿![](https://github.com/TerribleCoding123/B1tLab/blob/main/image_data/B1tLab%20logo.png?raw=true)
 **B1tLab is a CLI tool for converting integer representations, exploring binary formats, and generating accurate binary equivalents of decimal values.**
 
 
