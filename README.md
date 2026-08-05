@@ -49,20 +49,20 @@
 If you want to terminate the program, just type `exit` and hit Enter.
 
 Try typing `DEC_TO_BIN` and passing a value in order to convert it into a properly-notated binary representation. Here are the examples:
-![enter image description here](https://www.dropbox.com/scl/fi/hqhnnv5gv61x3s6r2seig/Example_1.png?rlkey=rmj53hvfeklehvacqjei6e1cb&st=5kj4mcl2&raw=1)
+![enter image description here](https://github.com/TerribleCoding123/B1tLab/blob/main/image_data/Example_1.png?raw=true)
 
 You can do the same with `BIN_TO_DEC` (***Note that `BIN_TO_DEC` accepts only binary values***): 
-![enter image description here](https://www.dropbox.com/scl/fi/encvg07v85kvfgqpo8g1a/Example_2.png?rlkey=1wgezeh5ohhn3ut31epxzrgj4&st=eis1dbgb&raw=1)
+![enter image description here](https://github.com/TerribleCoding123/B1tLab/blob/main/image_data/Example_2.png?raw=true)
 
 
 Now, in order to see how raw binary values are actually stored in registers, type `SDEC_TO_BIN` and pass a value to it:
-![enter image description here](https://www.dropbox.com/scl/fi/t4udgn0xdfu20ds35ktbx/Example_3.png?rlkey=ls6lbn1p73c02jt4sqau2g4eb&st=cnx0o6sn&raw=1)
+![enter image description here](https://github.com/TerribleCoding123/B1tLab/blob/main/image_data/Example_3.png?raw=true)
 
 Same works for `SBIN_TO_DEC`:
-![enter image description here](https://www.dropbox.com/scl/fi/8qrlgxx0epvx0jp6a9dkz/Example_4.png?rlkey=qrj2eckhp4vrf9hlbrldyb9kd&st=6bze4ug4&raw=1)
+![enter image description here](https://github.com/TerribleCoding123/B1tLab/blob/main/image_data/Example_4.png?raw=true)
 
 `SDEC_TO_BIN` and `SBIN_TO_DEC` also allow to pass special flags to them:
-![enter image description here](https://www.dropbox.com/scl/fi/3pu4z6c0hdwrazw06ds4b/Example_5.png?rlkey=c59am6qompdstestnd3vvt5vh&st=of9p07kp&raw=1)
+![enter image description here](https://github.com/TerribleCoding123/B1tLab/blob/main/image_data/Example_5.png?raw=true)
 
 For a full breakdown of commands, flags, value types, hardware edge cases, and how everything works under the hood, check out the **[🏗️ Architecture](#architecture)** section.
 
