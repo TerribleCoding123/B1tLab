@@ -1,4 +1,4 @@
-﻿![](https://github.com/TerribleCoding123/B1tLab/blob/main/image_data/B1tLab%20logo.png?raw=true)
+﻿[![](./image_data/B1tLab_logo.png)](./image_data/B1tLab_logo.png)
 **B1tLab is a CLI tool for converting integer representations, exploring binary formats, and generating accurate binary equivalents of decimal values.**
 
 
@@ -49,20 +49,20 @@
 If you want to terminate the program, just type `exit` and hit Enter.
 
 Try typing `DEC_TO_BIN` and passing a value in order to convert it into a properly-notated binary representation. Here are the examples:
-![enter image description here](https://github.com/TerribleCoding123/B1tLab/blob/main/image_data/Example_1.png?raw=true)
+[![](./image_data/Example_1.png)](./image_data/Example_1.png)
 
 You can do the same with `BIN_TO_DEC` (***Note that `BIN_TO_DEC` accepts only binary values***): 
-![enter image description here](https://github.com/TerribleCoding123/B1tLab/blob/main/image_data/Example_2.png?raw=true)
+[![](./image_data/Example_2.png)](./image_data/Example_2.png)
 
 
 Now, in order to see how raw binary values are actually stored in registers, type `SDEC_TO_BIN` and pass a value to it:
-![enter image description here](https://github.com/TerribleCoding123/B1tLab/blob/main/image_data/Example_3.png?raw=true)
+[![](./image_data/Example_3.png)](./image_data/Example_3.png)
 
 Same works for `SBIN_TO_DEC`:
-![enter image description here](https://github.com/TerribleCoding123/B1tLab/blob/main/image_data/Example_4.png?raw=true)
+[![](./image_data/Example_4.png)](./image_data/Example_4.png)
 
 `SDEC_TO_BIN` and `SBIN_TO_DEC` also allow to pass special flags to them:
-![enter image description here](https://github.com/TerribleCoding123/B1tLab/blob/main/image_data/Example_5.png?raw=true)
+[![](./image_data/Example_5.png)](./image_data/Example_5.png)
 
 For a full breakdown of commands, flags, value types, hardware edge cases, and how everything works under the hood, check out the **[🏗️ Architecture](#architecture)** section.
 
