@@ -12,18 +12,16 @@
 
 
 
-namespace VIEW {
+namespace View {
 
 
 
-    namespace WINDOW {
-
-       
+    namespace Window {
 
     }
     
 
-    namespace UTILS {
+    namespace Utils {
 
         replxx::Replxx::colors_t& keywordHighlighter(std::string const& input_buffer, replxx::Replxx::colors_t& color_buffer, std::string_view keyword, replxx::Replxx::Color desired_color) {
 
@@ -105,7 +103,7 @@ namespace VIEW {
             return color_buffer;
         }
 
-        replxx::Replxx::colors_t& MvalueHighlighter(std::string const& input_buffer, replxx::Replxx::colors_t& color_buffer, replxx::Replxx::Color desired_color) {
+        replxx::Replxx::colors_t& mValueHighlighter(std::string const& input_buffer, replxx::Replxx::colors_t& color_buffer, replxx::Replxx::Color desired_color) {
 
            
             std::string casted_char{};
@@ -117,7 +115,7 @@ namespace VIEW {
 
                 casted_char = input_buffer[index];
 
-                if (BUILT_INS::INP_HANDLING::INP_CHECK::IsANumber(casted_char, DECIMAL_SYS) == true) {
+                if (BuiltIns::InpHandling::InpCheck::isNumber(casted_char, BuiltIns::kDecimalSys) == true) {
 
                     color_buffer[index] = desired_color;
                     
@@ -155,11 +153,11 @@ namespace VIEW {
         }
 
 #ifdef BINARY_10_29_2025
-        replxx::Replxx::colors_t& RvalueHighlighter(std::string const& input_buffer, replxx::Replxx::colors_t& color_buffer, replxx::Replxx::Color desired_color) {
+        replxx::Replxx::colors_t& rValueHighlighter(std::string const& input_buffer, replxx::Replxx::colors_t& color_buffer, replxx::Replxx::Color desired_color) {
 
             
             std::vector<std::string> tokens{};
-            tokens = BUILT_INS::INP_HANDLING::Tokenizer(input_buffer, tokens);
+            tokens = BuiltIns::InpHandling::tokenizer(input_buffer, tokens);
            
             size_t index{};
             size_t offset{};
@@ -170,15 +168,15 @@ namespace VIEW {
 
             for (std::string token : tokens) {
                 
-                token = BUILT_INS::INP_HANDLING::INP_EDIT::ReplaceNewline(token);
-                token = BUILT_INS::INP_HANDLING::INP_EDIT::SpaceRemoval(token);
+                token = BuiltIns::InpHandling::InpEdit::replaceNewline(token);
+                token = BuiltIns::InpHandling::InpEdit::spaceRemoval(token);
 
                 if (token == "SBIN_TO_DEC") {
 
                     is_rValue_possible = true;
                 }
 
-                if (BINARY_CONVERSION::UTILS::isRawBin(token, BINARY_CONVERSION::FORMAT::INT::bit_size_presets) == true && BUILT_INS::INP_HANDLING::INP_CHECK::IsANumber(token, BINARY_SYS) == true && is_rValue_possible) {
+                if (BinaryConversion::Utils::isRawBin(token, BinaryConversion::Format::Int::bit_size_presets) == true && BuiltIns::InpHandling::InpCheck::isNumber(token, BuiltIns::kBinarySys) == true && is_rValue_possible) {
 
                     index = input_buffer.find(token, index);
 
@@ -219,63 +217,63 @@ namespace VIEW {
 
           
             //mVal higlighting
-            replxx::Replxx::Color mval_col = replxx::color::rgb666(mvalue_green[0], mvalue_green[1], mvalue_green[2]);
-            color_buffer = VIEW::UTILS::MvalueHighlighter(input_buffer, color_buffer, mval_col);
+            replxx::Replxx::Color mval_col = replxx::color::rgb666(kLiteralGreen[0], kLiteralGreen[1], kLiteralGreen[2]);
+            color_buffer = View::Utils::mValueHighlighter(input_buffer, color_buffer, mval_col);
 
 #ifdef BINARY_10_29_2025        
             //rVal highlighting (overwrites mVal)
-            replxx::Replxx::Color rval_col = replxx::color::grayscale(rvalue_white);
-            color_buffer = VIEW::UTILS::RvalueHighlighter(input_buffer, color_buffer, rval_col);
+            replxx::Replxx::Color rval_col = replxx::color::grayscale(kLiteralWhite);
+            color_buffer = View::Utils::rValueHighlighter(input_buffer, color_buffer, rval_col);
 #endif
             //Utility commands
-            replxx::Replxx::Color command_col = replxx::color::rgb666(command_purple[0], command_purple[1], command_purple[2]);
-            for (std::string_view keyword : BUILT_INS::commands) {
+            replxx::Replxx::Color command_col = replxx::color::rgb666(kCommandPurple[0], kCommandPurple[1], kCommandPurple[2]);
+            for (std::string_view keyword : BuiltIns::commands) {
 
-                color_buffer = VIEW::UTILS::keywordHighlighter(input_buffer, color_buffer, keyword, command_col);
+                color_buffer = View::Utils::keywordHighlighter(input_buffer, color_buffer, keyword, command_col);
 
             }
 
             //Conversion commands
-            replxx::Replxx::Color mconversion_col = replxx::color::rgb666(mconv_yellow[0], mconv_yellow[1], mconv_yellow[2]);
-            replxx::Replxx::Color sconversion_col = replxx::color::rgb666(sconv_yellow[0], sconv_yellow[1], sconv_yellow[2]);
-            for (std::string_view keyword : BINARY_CONVERSION::conversion_commmands) {
+            replxx::Replxx::Color mconversion_col = replxx::color::rgb666(kDefaultYellow[0], kDefaultYellow[1], kDefaultYellow[2]);
+            replxx::Replxx::Color sconversion_col = replxx::color::rgb666(kStandardYellow[0], kStandardYellow[1], kStandardYellow[2]);
+            for (std::string_view keyword : BinaryConversion::conversion_commmands) {
 
-                if (keyword == BINARY_CONVERSION::conversion_commmands[0] || keyword == BINARY_CONVERSION::conversion_commmands[1]) {
+                if (keyword == BinaryConversion::conversion_commmands[0] || keyword == BinaryConversion::conversion_commmands[1]) {
 
-                    color_buffer = VIEW::UTILS::keywordHighlighter(input_buffer, color_buffer, keyword, mconversion_col);
+                    color_buffer = View::Utils::keywordHighlighter(input_buffer, color_buffer, keyword, mconversion_col);
                 }
 
                 else {
 
-                    color_buffer = VIEW::UTILS::keywordHighlighter(input_buffer, color_buffer, keyword, sconversion_col);
+                    color_buffer = View::Utils::keywordHighlighter(input_buffer, color_buffer, keyword, sconversion_col);
                 }
             }
 
 
 
             //Flags
-            replxx::Replxx::Color mode_flag_col = replxx::color::grayscale(flag_gray);
-            for (std::string_view keyword : BINARY_CONVERSION::STANDARD_CONVERSION::flag_mode) {
+            replxx::Replxx::Color mode_flag_col = replxx::color::grayscale(kFlagGray);
+            for (std::string_view keyword : BinaryConversion::StandardConversion::flag_mode) {
 
-                color_buffer = VIEW::UTILS::keywordHighlighter(input_buffer, color_buffer, keyword, mode_flag_col);
+                color_buffer = View::Utils::keywordHighlighter(input_buffer, color_buffer, keyword, mode_flag_col);
 
             }
-            for (std::string_view keyword : BINARY_CONVERSION::FORMAT::INT::resize_flags) {
+            for (std::string_view keyword : BinaryConversion::Format::Int::resize_flags) {
 
-                color_buffer = VIEW::UTILS::keywordHighlighter(input_buffer, color_buffer, keyword, mode_flag_col);
+                color_buffer = View::Utils::keywordHighlighter(input_buffer, color_buffer, keyword, mode_flag_col);
             }
 
             //Formats
-            replxx::Replxx::Color format_col = replxx::color::rgb666(format_blue[0], format_blue[1], format_blue[2]);
-            for (std::string_view keyword : BINARY_CONVERSION::int_formats) {
+            replxx::Replxx::Color format_col = replxx::color::rgb666(kFormatBlue[0], kFormatBlue[1], kFormatBlue[2]);
+            for (std::string_view keyword : BinaryConversion::int_formats) {
 
                 //Unsigned shouldn't be recognized as a valid format to enter
-                if (keyword == BINARY_CONVERSION::int_formats[0]) {
+                if (keyword == BinaryConversion::int_formats[0]) {
 
                     continue;
                 }
 
-                color_buffer = VIEW::UTILS::keywordHighlighter(input_buffer, color_buffer, keyword, format_col);
+                color_buffer = View::Utils::keywordHighlighter(input_buffer, color_buffer, keyword, format_col);
 
             }
 
@@ -286,8 +284,8 @@ namespace VIEW {
             //color_buffer = VIEW::UTILS::keywordHighlighter(input_buffer, color_buffer, "BIN_TO_DEC", replxx::Replxx::Color::BRIGHTMAGENTA);
 
             //Comments
-            replxx::Replxx::Color comment_col = replxx::color::rgb666(comment_green[0], comment_green[1], comment_green[2]);
-            color_buffer = VIEW::UTILS::commentHighlighter(input_buffer, color_buffer, comment_col);
+            replxx::Replxx::Color comment_col = replxx::color::rgb666(kCommentGreen[0], kCommentGreen[1], kCommentGreen[2]);
+            color_buffer = View::Utils::commentHighlighter(input_buffer, color_buffer, comment_col);
 
 
         }

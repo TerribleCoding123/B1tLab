@@ -71,7 +71,7 @@ The `view` module is used for formatting and styling purposes. In it, there are 
 
 <h2 id="21-character-filtering">2.1 Character Filtering</h2>
 
-Before the input handling procedure can start, user input should be filtered to prevent Undefined Behavior and potential crashes. B1tLab only supports the ASCII character set. Any wide character will break assumptions about the length of the string and make the program unsafe. To prevent this, the `built_ins` module has a `utf_filter` function. The function alters the user input dynamically through `replxx`'s `set_modify_callback()` method, replacing all wide characters with the `'?'` symbol. 
+Before the input handling procedure can start, user input should be filtered to prevent Undefined Behavior and potential crashes. B1tLab only supports the ASCII character set. Any wide character will break assumptions about the length of the string and make the program unsafe. To prevent this, the `built_ins` module has a `inputFilter` function. The function alters the user input dynamically through `replxx`'s `set_modify_callback()` method, replacing all wide characters with the `'?'` symbol. 
 
 ### How It Works
 
@@ -81,8 +81,8 @@ It is known that `std::string` is essentially an array of `char`, which occupy a
 <h2 id="22-initial-pipeline">2.2 Initial Pipeline</h2>
 
 
-Input is handled through a `user_input` struct located in the `built_ins` module. 
-The `user_input` struct contains the following items: 
+Input is handled through a `UserInput` struct located in the `built_ins` module. 
+The `UserInput` struct contains the following items: 
 
 1) `flag`
 2) `unparsed_string`
@@ -91,21 +91,21 @@ The `user_input` struct contains the following items:
 
 ### Processing and Tokenizing Input
 
-When the user submits an input line by pressing `Enter`, the raw data is copied into the `unparsed_string` member. Next, `GetParsedInput()` sanitizes this string by stripping all comments, replacing newline (`'\n'`) characters with spaces, and trimming trailing whitespace to ensure clean string formatting for other functions. Once sanitized, the input string is split into individual tokens, which are sequentially appended to the `tokens` vector.
+When the user submits an input line by pressing `Enter`, the raw data is copied into the `unparsed_string` member. Next, `getParsedInput()` sanitizes this string by stripping all comments, replacing newline (`'\n'`) characters with spaces, and trimming trailing whitespace to ensure clean string formatting for other functions. Once sanitized, the input string is split into individual tokens, which are sequentially appended to the `tokens` vector.
 
 ### Parsing Each Token
 
-The `tokens` vector is then passed by reference to the `CommandCheck()` function. Here, a `std::string command` variable is initialized with the vector's first element. This is managed by `GetFirstToken()`, a utility function that extracts the front element from the `tokens` vector and immediately erases it, preparing the remaining vector elements for argument parsing. `CommandCheck()` then checks the `command` string and finds a matching operation for it. If found, it calls the matching function and passes the `tokens` vector by reference if the command accepts arguments. 
+The `tokens` vector is then passed by reference to the `commandCheck()` function. Here, a `std::string command` variable is initialized with the vector's first element. This is managed by `getFirstToken()`, a utility function that extracts the front element from the `tokens` vector and immediately erases it, preparing the remaining vector elements for argument parsing. `commandCheck()` then checks the `command` string and finds a matching operation for it. If found, it calls the matching function and passes the `tokens` vector by reference if the command accepts arguments. 
 
 ### The `flag` and `error_token`
 
 The `flag` is an event flag (more on that in the next section).
 
-The `error_token` is needed for diagnostic purposes. If the event flag is set to `F_INVALID_INP`, `error_token` will be assigned to whichever token raised this flag. After that, a specific error message function will be called with `error_token` passed as an argument.
+The `error_token` is needed for diagnostic purposes. If the event flag is set to `f_invalid_input`, `error_token` will be assigned to whichever token raised this flag. After that, a specific error message function will be called with `error_token` passed as an argument.
 
 <h2 id="23-event-flags">2.3 Event Flags </h2>
 
-An event flag is a `uint16_t` integer variable for storing flag data. It is set to `0` by default. If any event occurs during data processing (e.g., a warning or an error must be raised), `flag` will be assigned the proper flag value. All flags are macros that start with the `F_` prefix (for instance, the `F_INVALID_INP` error flag, which lives in the `built_ins` section, or the `F_TRUNCATION` warning flag, which lives in the `binary` section).  
+An event flag is a `uint16_t` integer variable for storing flag data. It is set to `0` by default. If any event occurs during data processing (e.g., a warning or an error must be raised), `flag` will be assigned the proper flag value. All flags `constexpr` variables  that start with the `f_` prefix (for instance, the `f_invalid_input` error flag, which lives in the `built_ins` section, or the `f_truncation` warning flag, which lives in the `binary` section).  
 
 <h1 id="3-values">3. Values </h1>
 
@@ -143,62 +143,62 @@ As mentioned earlier, the allowed bit size for `rValues` is format-defined. The 
 
 <h2 id="32-value-parsing-validation">3.2 Value Parsing & Validation</h2>
 
-Each converter engine utilizes the `InpValueParser()` function to validate values passed as input. The parser lives in the `built_ins` module. Its main purpose is to validate the value (checking whether the input contains any inappropriate digits, is formatted incorrectly, or exceeds designed limitations), process it according to the caller's arguments (removing leading/trailing zeros if needed), and return a parsed struct called `value`.
+Each converter engine utilizes the `valueParser()` function to validate values passed as input. The parser lives in the `built_ins` module. Its main purpose is to validate the value (checking whether the input contains any inappropriate digits, is formatted incorrectly, or exceeds designed limitations), process it according to the caller's arguments (removing leading/trailing zeros if needed), and return a parsed struct called `value`.
 
-<h2 id="33-the-value-struct">3.3 The 'value' Struct</h2>
+<h2 id="33-the-value-struct">3.3 The 'Value' Struct</h2>
 
-The `value` struct is one of the few structs used for storing number data (more on other structs later). It contains the following member variables: 
+The `Value` struct is one of the few structs used for storing number data (more on other structs later). It contains the following member variables: 
 
-1) `WHOLE_return_val`
-2) `FRAC_digit_val`
-3) `FRAC_nonperiod_val`
-4) `FRAC_period_val` 
+1) `whole_part`
+2) `frac_part`
+3) `frac_nonperiod_part`
+4) `frac_period_part` 
 5) `is_a_frac`
 6) `sign`
 7) `has_explicit_plus`
 8) `flag` 
 
-The `value` struct splits the number into appropriate components that can be processed separately. After processing, the member string variables are overwritten, and a return value is constructed from them. Note that functions for internal processing (like utility converters) do not receive `value` as an argument or return it. Instead, a caller may pass a member variable of the struct so it can be processed. 
+The `Value` struct splits the number into appropriate components that can be processed separately. After processing, the member string variables are overwritten, and a return value is constructed from them. Note that functions for internal processing (like utility converters) do not receive `Value` as an argument or return it. Instead, a caller may pass a member variable of the struct so it can be processed. 
 
 ### Components
-`WHOLE_return_val`, `FRAC_digit_val`, `FRAC_nonperiod_val`, and `FRAC_period_val` are strings that store the integer part of a number, full fractional part, fractional non-periodic part, and periodic part, respectively. 
+`whole_part`, `frac_part`, `frac_nonperiod_part`, and `frac_period_part` are strings that store the integer part of a number, full fractional part, fractional non-periodic part, and periodic part, respectively. 
 Here are examples of what happens with these member variables after parsing:
 ```C++
 Case No. 1: 5.21(34)
-WHOLE_return_val = "5"
-FRAC_digit_val = "21(34)"
-FRAC_nonperiod_val = "21"
-FRAC_period_val = "34"
+whole_part = "5"
+frac_part = "21(34)"
+frac_nonperiod_part = "21"
+frac_period_part = "34"
 
 Case No. 2: 5 
-WHOLE_return_val = "5"
-FRAC_digit_val = ""
-FRAC_nonperiod_val = ""
-FRAC_period_val = ""
+whole_part = "5"
+frac_part = ""
+frac_nonperiod_part = ""
+frac_period_part = ""
 
 Case No. 3: 5.
-WHOLE_return_val = "5"
-FRAC_digit_val = "0"
-FRAC_nonperiod_val = "0"
-FRAC_period_val = ""
+whole_part = "5"
+frac_part = "0"
+frac_nonperiod_part = "0"
+frac_period_part = ""
 
 Case No. 4: 5.34 
-WHOLE_return_val = "5"
-FRAC_digit_val = "34"
-FRAC_nonperiod_val = "34"
-FRAC_period_val = ""
+whole_part = "5"
+frac_part = "34"
+frac_nonperiod_part = "34"
+frac_period_part = ""
 
 Case No. 5: 5.(12)
-WHOLE_return_val = "5"
-FRAC_digit_val = "(12)"
-FRAC_nonperiod_val = ""
-FRAC_period_val = "12"
+whole_part = "5"
+frac_part = "(12)"
+frac_nonperiod_part = ""
+frac_period_part = "12"
 
 Case No. 6: .54 
-WHOLE_return_val = "0"
-FRAC_digit_val = "54"
-FRAC_nonperiod_val = "54"
-FRAC_period_val = ""
+whole_part = "0"
+frac_part = "54"
+frac_nonperiod_part = "54"
+frac_period_part = ""
 ```
 
 Note that if the user inputs `5` (Case No. 2), all fractional components of the number remain empty strings. However, when the user inputs `5.`, because of the decimal separator, we treat it as `5.0`. The same applies when the user inputs `.54`, which is treated as `0.54`.
@@ -217,14 +217,14 @@ All structs used to store or parse values have a `sign` member variable. `sign` 
 
 <h2 id="35-internal-structs">3.5 Internal Structs</h2>
 
-It is worth noting that not all functions utilize the `value` struct to process data in non-trivial parsing cases. For some functions, a different representation of a number is much easier to work with. For instance, a rational representation of a number in the form $\frac{a}{b}$ (where both numerator and denominator are integer values) is easier to handle than pure strings. For these reasons, there are two additional structs for internal usage:
+It is worth noting that not all functions utilize the `Value` struct to process data in non-trivial parsing cases. For some functions, a different representation of a number is much easier to work with. For instance, a rational representation of a number in the form $\frac{a}{b}$ (where both numerator and denominator are integer values) is easier to handle than pure strings. For these reasons, there are two additional structs for internal usage:
 
-1) `int_parser`
-2) `bin_string_parser`
+1) `IntParser`
+2) `BinStringParser`
 
-### The `int_parser` Struct
+### The `IntParser` Struct
 
-`int_parser` is defined in the `built_ins` section and consists of the following member variables:
+`IntParser` is defined in the `built_ins` section and consists of the following member variables:
 
 1) `sign` 
 2) `numerator`
@@ -238,9 +238,9 @@ Both `numerator` and `denominator` are `uint64_t` integers that represent the va
 1) It allows periodic fractions to be stored in exact, finite form.
 2) Operations are performed directly on integers, meaning we avoid precision loss during arithmetic operations (which is why internal calculations never utilize floating-point values).
 
-### The `bin_string_parser` Struct
+### The `BinStringParser` Struct
 
-`bin_string_parser` lives in the `binary` module, and its main purpose is to store and manipulate values for the Standard Conversion Engine. The struct consists of the following member variables:
+`BinStringParser` lives in the `binary` module, and its main purpose is to store and manipulate values for the Standard Conversion Engine. The struct consists of the following member variables:
 
 1) `value`
 2) `intermediate_value`
@@ -261,40 +261,40 @@ The `flag` variable is an event flag (for more details, see Section [2.3 Event F
 
 The Default Converter converts a decimal `mValue` into a binary `mValue` (or vice versa). It is used to output exact, mathematically valid representations. The converter accepts only a single argument, which must be an `mValue`. If an `rValue` is passed to it instead, it will still be treated as a positive `mValue` (e.g., `10001001` will be treated as `+10001001`). 
 
-1) `DEC_TO_BIN()` 
-2) `BIN_TO_DEC()` 
+1) `decToBin()` 
+2) `binToDec()` 
 
 ### Conversion Pipeline
-The conversion pipeline for `DEC_TO_BIN()` and `BIN_TO_DEC()` engines is almost identical (with a few exceptions).
+The conversion pipeline for `decToBin()` and `binToDec()` engines is almost identical (with a few exceptions).
 
 ### Input Validation
-Both `DEC_TO_BIN()` and `BIN_TO_DEC()` take a reference to the `tokens` vector as an argument via the `GetFirstToken()` function (more on tokens and initial input handling in Section [2.2 Initial Pipeline](#22-initial-pipeline)) and initialize the `input_value` string with it. After that, the number is parsed in `InpValueParser()`, and the parsed result is stored in an instance of the `value` struct called `parsed_input` (more on value parsing in Section [3.2 Value Parsing & Validation](#32-value-parsing-validation)). The struct is then passed to `ErrorHandler()`, a utility function that raises a specific error and returns `true` if the input was invalid (terminating conversion). Only then is `return_val` declared. 
+Both `decToBin()` and `binToDec()` take a reference to the `tokens` vector as an argument via the `getFirstToken()` function (more on tokens and initial input handling in Section [2.2 Initial Pipeline](#22-initial-pipeline)) and initialize the `input_value` string with it. After that, the number is parsed in `valueParser()`, and the parsed result is stored in an instance of the `Value` struct called `parsed_input` (more on value parsing in Section [3.2 Value Parsing & Validation](#32-value-parsing-validation)). The struct is then passed to `errorHandler()`, a utility function that raises a specific error and returns `true` if the input was invalid (terminating conversion). Only then is `return_val` declared. 
 
 ### Fractional Part Conversion
 If the initial input was fractional, a specific code block is executed. Note that fractional conversion is handled differently across converter types. 
 
-### `DEC_TO_BIN()`
+### `decToBin()`
 
-`parsed_input.FRAC_digit_val` is converted into a rational fraction (via the `ToFraction()` utility function) and stored in an instance of `int_parser` so it can be passed to `fracDecToBin()`. Finally, the return value of `fracDecToBin()` overwrites `parsed_input.FRAC_digit_val` (since this function returns a string), and `return_val` is appended with it.
+`parsed_input.frac_part` is converted into a rational fraction (via the `toFraction()` utility function) and stored in an instance of `IntParser` so it can be passed to `fracDecToBin()`. Finally, the return value of `fracDecToBin()` overwrites `parsed_input.frac_part` (since this function returns a string), and `return_val` is appended with it.
 
-### `BIN_TO_DEC()`
+### `binToDec()`
 
-Instead of converting `parsed_input.FRAC_digit_val` to a rational fraction altogether, the periodic and non-periodic digits are converted into decimal rational fractions separately via `fracBinToDecPeriod()` and `fracBinToDec()`, respectively. Both rational fractions are then added, and the result is stored in `int_parser`. Finally, the rational fraction is converted into a decimal fraction via the `DecimalDivision()` utility function.
+Instead of converting `parsed_input.frac_part` to a rational fraction altogether, the periodic and non-periodic digits are converted into decimal rational fractions separately via `fracBinToDecPeriod()` and `fracBinToDec()`, respectively. Both rational fractions are then added, and the result is stored in `IntParser`. Finally, the rational fraction is converted into a decimal fraction via the `decimalDivision()` utility function.
 
 ### Carry Logic 
 
-When the input's fractional part converges to one (e.g., $0.\overline{9} = 1$), after fractional conversion is completed, `int_parser`'s `numerator` will equal its `denominator`. In this case, the converter overwrites `parsed_input.FRAC_digit_val` with `"0"` and increments `WHOLE_return_val` by one.
+When the input's fractional part converges to one (e.g., $0.\overline{9} = 1$), after fractional conversion is completed, `IntParser`'s `numerator` will equal its `denominator`. In this case, the converter overwrites `parsed_input.frac_part` with `"0"` and increments `whole_part` by one.
 
 ### Integer Part Conversion
 
-`parsed_input.WHOLE_return_val` is cast to an integer first and then passed to `intDecToBin()` as an argument. Finally, the return value of this function overwrites `parsed_input.WHOLE_return_val`, which is appended to `return_val`.
+`parsed_input.whole_part` is cast to an integer first and then passed to `intDecToBin()` as an argument. Finally, the return value of this function overwrites `parsed_input.whole_part`, which is appended to `return_val`.
 
-After all these steps, `return_val` is assigned its proper sign, and `DEC_TO_BIN()` returns it.
+After all these steps, `return_val` is assigned its proper sign, and `decToBin()` returns it.
 
 
 <h2 id="42-the-standard-converter">4.2 The Standard Converter</h2>
 
-The Standard Converter converts a decimal `mValue` into an `rValue` (or vice versa) according to a preset format. It is used to output hardware-level representations of numbers and handle edge cases. Unlike the Default Converter, where `DEC_TO_BIN()` and `BIN_TO_DEC()` are separate functions within a single engine, `STANDARD_CONVERTER()` is a master function for both types of conversion. This design prevents code duplication, as the conversion type can be configured by passing the macros `DecToBin` and `BinToDec`. 
+The Standard Converter converts a decimal `mValue` into an `rValue` (or vice versa) according to a preset format. It is used to output hardware-level representations of numbers and handle edge cases. Unlike the Default Converter, where `decToBin()` and `binToDec()` are separate functions within a single engine, `standardConverter()` is a master function for both types of conversion. This design prevents code duplication, as the conversion type can be configured by passing the `constexpr` `bool` variables `dec_to_bin` and `bin_to_dec`. 
 
 
 <h3 id="421-modes">4.2.1 Modes</h3>
@@ -324,7 +324,7 @@ To invoke Show Format Mode, the user must provide either the `--show_local` flag
 
 ### Set Default Mode
 
-Set Default Mode resets all previously configured formats to their default settings. Currently (since `STANDARD_CONVERTER` supports integer formats only), the default format is Two's Complement for integers.
+Set Default Mode resets all previously configured formats to their default settings. Currently (since `standardConverter` supports integer formats only), the default format is Two's Complement for integers.
 
 To invoke Set Default Mode, the user must provide the `--set_default` flag as the first argument.
 
@@ -350,19 +350,19 @@ it would no longer represent `-5`. To prevent this, resize flags account for the
 <h3 id="423-input-handling-pipeline">4.2.3 Input Handling Pipeline</h3>
 
 
-`STANDARD_CONVERTER()` takes a reference to the `tokens` vector as an argument via `GetFirstToken()` (more on tokens and initial input handling in Section [2.2 Initial Pipeline](#22-initial-pipeline)) and initializes `input_token` with it. Then, `return_val` is declared.
+`standardConverter()` takes a reference to the `tokens` vector as an argument via `getFirstToken()` (more on tokens and initial input handling in Section [2.2 Initial Pipeline](#22-initial-pipeline)) and initializes `input_token` with it. Then, `return_val` is declared.
 
 ### Mode Selection 
 
-The `uint16_t converter_mode` variable is initialized with the return value of the `modeSelector()` utility function. Depending on this value, different modes are activated. If the mode requires a second argument, `GetFirstToken()` is called again. After that, `STANDARD_CONVERTER()` terminates where applicable.
+The `uint16_t converter_mode` variable is initialized with the return value of the `modeSelector()` utility function. Depending on this value, different modes are activated. If the mode requires a second argument, `getFirstToken()` is called again. After that, `standardConverter()` terminates where applicable.
 
-If the mode is Set Format Mode, depending on the flag and conversion type provided, the internal vectors `SDEC_TO_BIN_formats` and `SBIN_TO_DEC_formats` are overwritten with the format identifier provided as the second argument. Then `STANDARD_CONVERTER()` terminates.
+If the mode is Set Format Mode, depending on the flag and conversion type provided, the internal vectors `sdec_to_bin_formats` and `sbin_to_dec_formats` are overwritten with the format identifier provided as the second argument. Then `standardConverter()` terminates.
 
-If the mode is Set Default Mode, these vectors are assigned the values from `default_formats`. Then `STANDARD_CONVERTER()` terminates.
+If the mode is Set Default Mode, these vectors are assigned the values from `default_formats`. Then `standardConverter()` terminates.
 
-If the mode is Show Format Mode, depending on the flag passed and converter type used, specific diagnostic functions are called to display current formats. Then `STANDARD_CONVERTER()` terminates.
+If the mode is Show Format Mode, depending on the flag passed and converter type used, specific diagnostic functions are called to display current formats. Then `standardConverter()` terminates.
 
-Finally, if the mode is Value Mode, `FORMAT_CONVERTER()` is called. It parses the value, resolves resize flags, and calls a specific format converter function depending on the value type (whole or fractional) and preset format. `STANDARD_CONVERTER()` then returns the converted value and terminates. 
+Finally, if the mode is Value Mode, `formatConverter()` is called. It parses the value, resolves resize flags, and calls a specific format converter function depending on the value type (whole or fractional) and preset format. `standardConverter()` then returns the converted value and terminates. 
 
 
 <h1 id="5-command-specifications">5. Command Specifications </h1>
@@ -372,7 +372,7 @@ Finally, if the mode is Value Mode, `FORMAT_CONVERTER()` is called. It parses th
 
 ### `exit` 
 
-`exit` sets the flag of the `user_input` struct to `F_EXIT`, which breaks the program loop and terminates execution. 
+`exit` sets the flag of the `UserInput` struct to `f_exit`, which breaks the program loop and terminates execution. 
 
 
 <h2 id="52-default-conversion-commands">5.2 Default Conversion Commands  </h2>
@@ -542,7 +542,7 @@ FRAC :
 
 <h2 id="61-built_ins">6.1 built_ins</h2>
 
-### ConversionError() 
+### conversionError() 
 
 > '**argument**' isn't recognized as a valid input.
 
@@ -553,7 +553,7 @@ DEC_TO_BIN 54u              ;DEC_TO_BIN doesn't support the u postfix
 SDEC_TO_BIN --set_global 54 ;--set_global expects a format 
 ```
 
-### InvalidCommandError()
+### invalidCommandError()
 
 > The term '**token**' is not recognized as a valid command or a valid input.
 
@@ -564,7 +564,7 @@ empty        ;empty is not a command
 54           ;value is still not a command
 ```
 
-### OverflowError()
+### overflowError()
 > Input is out of bounds (convertible value should be greater than or equal to **lower_bound** or less than or equal to **upper_bound**)
 
 An error indicating that the integer part of the number is out of the designated range. Examples: 
@@ -573,7 +573,7 @@ DEC_TO_BIN 18446744073709551616     ;the number is too large
 DEC_TO_BIN -9999999999999999999999  ;the number is too small 
 ```
 
-### MantissaOverflowError()
+### mantissaOverflowError()
 > Input has too many digits in the fractional part (max convertible amount is **bound** digits).
 
 An error indicating that the number of digits in the fractional part exceeds designated limits. Example: 
@@ -585,7 +585,7 @@ DEC_TO_BIN 3.141592653589793238462643383279502884 ;too many digits in the fracti
 <h2 id="62-binary">6.2 binary</h2>
 
 
-### IntermediateValue()
+### intermediateValue()
 
 > Intermediate value: **value**
 
@@ -596,7 +596,7 @@ SBIN_TO_DEC 101              ;will be converted to an rValue
 Intermediate value: 00000101
 ```
 
-### WrapAroundWarning() 
+### wrapAroundWarning() 
 
 > The value has been wrapped around within **N** bits.
 
@@ -609,11 +609,11 @@ SBIN_TO_DEC -101u --resize_to_16
 The value has been wrapped around within 16 bits.
 ```
 
-### SetFormatMessage()
+### setFormatMessage()
 
 > Format '**format**' has been set for '**conversion_mode**' **value_type** conversions. 
 
-A diagnostic message used in the Standard Converter to indicate that a specific format has been assigned for the specified conversion type (`DecToBin` or `BinToDec`) and value type (integer or fractional). `SetFormatMessage()` is triggered by set flags (`--set_local` or `--set_global`). Examples:
+A diagnostic message used in the Standard Converter to indicate that a specific format has been assigned for the specified conversion command (`SDEC_TO_BIN` or `SBIN_TO_DEC`) and value type (integer or fractional). `setFormatMessage()` is triggered by set flags (`--set_local` or `--set_global`). Examples:
 ```
 SDEC_TO_BIN --set_local ONES_COMP ;One's Complement is compatible with integers only
 Format 'ONES_COMP' has been set for 'SDEC_TO_BIN' integer conversions.
@@ -623,7 +623,7 @@ Format 'SIGN_MAG' has been set for 'SDEC_TO_BIN' integer conversions.
 Format 'SIGN_MAG' has been set for 'SBIN_TO_DEC' integer conversions.
 ```
 
-### SetDefaultMessage()
+### setDefaultMessage()
 
 > Default formats have been set for 'SDEC_TO_BIN' and 'SBIN_TO_DEC':
 INT  : **default_format** 
@@ -637,12 +637,12 @@ INT  : TWOS_COMP
 FRAC :
 ```
 
-### ShowLocal() 
+### showLocal() 
 > **conversion_mode**:
 INT  : **preset_format**
 FRAC :
 
-A diagnostic message used in the Standard Converter to show preset formats for integer and fractional values in the specified conversion type (`SDEC_TO_BIN` or `SBIN_TO_DEC`). It can also display formats across all conversion modes when invoked with show flags (`--show_local` or `--show_global`). Examples: 
+A diagnostic message used in the Standard Converter to show preset formats for integer and fractional values in the specified conversion command (`SDEC_TO_BIN` or `SBIN_TO_DEC`). It can also display formats across all conversion modes when invoked with show flags (`--show_local` or `--show_global`). Examples: 
 ```
 SDEC_TO_BIN --show_local
 

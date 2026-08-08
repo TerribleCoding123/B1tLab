@@ -1,0 +1,11 @@
+Identifier case:
+
+snake_case: variables.
+
+camelCase: functions.
+
+PascalCase: namespaces, structs.
+
+kCamelCase: constexpr objects.
+
+f_snake_case: event flags.

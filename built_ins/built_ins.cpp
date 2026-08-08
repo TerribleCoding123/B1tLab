@@ -6,9 +6,9 @@
 #include "built_ins.h"
 #include "view.h"
 
-namespace BUILT_INS {
+namespace BuiltIns {
 	
-	uint64_t Power(uint64_t base, uint64_t exponent) {
+	uint64_t power(uint64_t base, uint64_t exponent) {
 		/*This is a simple power unsgined integer based power function
 		with an absolute limit of UINT64_MAX
 		*/
@@ -23,12 +23,12 @@ namespace BUILT_INS {
 		return output;
 	}
 
-	value DecimalDivision(uint64_t numerator, uint64_t denominator, uint16_t fraction_precision) {
+	Value decimalDivision(uint64_t numerator, uint64_t denominator, uint16_t fraction_precision) {
 		/*This is string-based exact (no rounding error for fracitons) function for decimal division. It can output
 		periodic fractions as well as full decimal fractions up to a given fraction_precision amount of digits */
 		//This function becomes handy when we want to output the final result of our integer arithmetic calculations!
 		
-		value output;
+		Value output;
 		
 		//value_buffer is needed in order to check whether is a number periodic in a given fractional_precision or no
 		std::vector<uint64_t> value_buffer{};
@@ -41,18 +41,18 @@ namespace BUILT_INS {
 		if (denominator == 0) {
 			
 			
-			output = value{};
-			output.flag = F_INVALID_INP;
+			output = Value{};
+			output.flag = f_invalid_input;
 			return output;
 		}
 
 		
 		if (numerator == 0) {
 			
-			output = value{};
-			output.WHOLE_return_val = '0';
+			output = Value{};
+			output.whole_part = '0';
 			//Technically 0/5 is a fraction (numerator < denominator), hence we also append zero to the FRAC_digit_val
-			output.FRAC_digit_val = '0';
+			output.frac_part = '0';
 			return output;
 		}
 		
@@ -60,9 +60,9 @@ namespace BUILT_INS {
 		while (numerator != 0) {
 
 			//We terminate calculations if the fraction_precision is exceeded, so the fractional part is non-infinite
-			if (output.FRAC_digit_val.length() >= fraction_precision) {
+			if (output.frac_part.length() >= fraction_precision) {
 				
-				output.flag = F_IMPRECISE_OUTPUT;
+				output.flag = f_precision_loss;
 
 				break;
 
@@ -72,12 +72,12 @@ namespace BUILT_INS {
 				
 				//If at the current point of execution we are still in the whole part of the number -> append WHOLE_return_val
 				//This statement is needed to calculate whole digits of an output
-				if (output.is_a_frac == false) output.WHOLE_return_val.append(std::to_string(numerator / denominator));
+				if (output.is_a_frac == false) output.whole_part.append(std::to_string(numerator / denominator));
 
 				else if (output.is_a_frac == true) {
 
 					//Simply calculates the next fractional digit
-					output.FRAC_digit_val.append(std::to_string(numerator / denominator));
+					output.frac_part.append(std::to_string(numerator / denominator));
 
 					//We increment the current_digit in order to properly count at what digit of a fractional part we currently are
 					
@@ -88,7 +88,7 @@ namespace BUILT_INS {
 
 				//If the numerator is less than the denimator, the division on line 81 will never occur
 				//Thats why we have to manually add zero form these types of inputs
-				if (output.WHOLE_return_val.length() == 0) output.WHOLE_return_val += '0';
+				if (output.whole_part.length() == 0) output.whole_part += '0';
 
 				//if_a_float becomes true because we divide the number the numerator of which is less than the denominator
 				output.is_a_frac = true;
@@ -105,12 +105,12 @@ namespace BUILT_INS {
 						if (value_buffer[index] == numerator) {
 							
 							//The characters up to the matching remainder (exclusive) are inserted into FRAC_nonperiod_val
-							output.FRAC_nonperiod_val = output.FRAC_digit_val.substr(0, index);
+							output.frac_nonperiod_part = output.frac_part.substr(0, index);
 							
 							//The characters from the matching remainder index up to the end of FRAC_digit_val are inserted into FRAC_period_val
-							output.FRAC_period_val = output.FRAC_digit_val.substr(index, output.FRAC_digit_val.length() - index);
+							output.frac_period_part = output.frac_part.substr(index, output.frac_part.length() - index);
 						
-							output.FRAC_digit_val = output.FRAC_nonperiod_val + '(' + output.FRAC_period_val + ')';
+							output.frac_part = output.frac_nonperiod_part + '(' + output.frac_period_part + ')';
 
 							return output;
 						}
@@ -129,7 +129,7 @@ namespace BUILT_INS {
 				//(note that without this statement any fraction calculations will result in zero, because integer part of it is zero!)
 				numerator *= 10;
 				
-				if (numerator < denominator) output.FRAC_digit_val += '0';
+				if (numerator < denominator) output.frac_part += '0';
 
 				//Reset the whole loop until the numerator > denominator, so integer division will output meaningful results
 				continue;
@@ -145,20 +145,20 @@ namespace BUILT_INS {
 
 	}
 
-	namespace INP_HANDLING {
+	namespace InpHandling {
 
-		user_input GetParsedInput(user_input input) {
+		UserInput getParsedInput(UserInput input) {
 
 			input.unparsed_input = removeComments(input.unparsed_input);
 			
 
-			input.unparsed_input = BUILT_INS::INP_HANDLING::INP_EDIT::ReplaceNewline(input.unparsed_input);
-			input.unparsed_input = BUILT_INS::INP_HANDLING::INP_EDIT::TrailingSpaceRemoval(input.unparsed_input);
+			input.unparsed_input = BuiltIns::InpHandling::InpEdit::replaceNewline(input.unparsed_input);
+			input.unparsed_input = BuiltIns::InpHandling::InpEdit::trailingSpaceRemoval(input.unparsed_input);
 
 
 
 			//Old values are constantly overwritten
-			input.tokens = BUILT_INS::INP_HANDLING::Tokenizer(input.unparsed_input, input.tokens);
+			input.tokens = BuiltIns::InpHandling::tokenizer(input.unparsed_input, input.tokens);
 			return input;
 		}
 
@@ -228,14 +228,14 @@ namespace BUILT_INS {
 			return output_string;
 		}
 
-		std::vector<std::string> Tokenizer(std::string unparsed_string, std::vector<std::string> vector) {
+		std::vector<std::string> tokenizer(std::string unparsed_string, std::vector<std::string> vector) {
 
 			uint16_t index{ 1 };
 			std::string token{};
 			
-			while (BUILT_INS::INP_HANDLING::inputFetch(unparsed_string, index).length() != 0) {
+			while (BuiltIns::InpHandling::inputFetch(unparsed_string, index).length() != 0) {
 
-				token = BUILT_INS::INP_HANDLING::inputFetch(unparsed_string, index); 
+				token = BuiltIns::InpHandling::inputFetch(unparsed_string, index); 
 				vector.push_back(token);
 				index++;
 
@@ -244,7 +244,7 @@ namespace BUILT_INS {
 			return vector;
 		}
 
-		std::string GetFirstToken(std::vector<std::string>& input_vector) {
+		std::string getFirstToken(std::vector<std::string>& input_vector) {
 
 			std::string output_token{};
 
@@ -260,9 +260,9 @@ namespace BUILT_INS {
 			return output_token;
 		}
 
-		namespace INP_EDIT {
+		namespace InpEdit {
 
-			void utf_filter(std::string& input, [[maybe_unused]] int& cursor) {
+			void inputFilter(std::string& input, [[maybe_unused]] int& cursor) {
 
 				std::string output{};
 				//because UTF-16, or UTF-32 characters are stored as multiple UTF-8 bytes in input, while converting, we only need a single '?'
@@ -295,7 +295,7 @@ namespace BUILT_INS {
 
 			}
 
-			std::string RemoveSuffix(std::string input) {
+			std::string removeSuffix(std::string input) {
 				//Assumes suffix is a single character
 
 				if (input.length() == 0) {
@@ -308,7 +308,7 @@ namespace BUILT_INS {
 				return input;
 			}
 
-			std::string SpaceRemoval(std::string input) {
+			std::string spaceRemoval(std::string input) {
 				/*Copies all of the contents of input into output_string, only skipping the ' ' character*/
 
 
@@ -326,7 +326,7 @@ namespace BUILT_INS {
 				return output_string;
 			}
 
-			std::string ReplaceNewline(std::string input) {
+			std::string replaceNewline(std::string input) {
 
 				std::string output_str{};
 
@@ -345,7 +345,7 @@ namespace BUILT_INS {
 				return output_str;
 			}
 
-			std::string TrailingSpaceRemoval(std::string input) {
+			std::string trailingSpaceRemoval(std::string input) {
 
 				while (input.length() != 0) {
 
@@ -365,7 +365,7 @@ namespace BUILT_INS {
 				return input;
 			}
 
-			std::string LeadingZeroRemoval(std::string input) {
+			std::string leadingZeroRemoval(std::string input) {
 				/*Removes all of the leading zeros from the input string via .erase method, until no left
 				if string becomes or initially was  zero length, the function will output '0'*/
 
@@ -379,7 +379,7 @@ namespace BUILT_INS {
 				return input;
 			}
 
-			std::string TrailingZeroRemoval(std::string input) {
+			std::string trailingZeroRemoval(std::string input) {
 				/*Checks if the last character of input string is zero, if so, it removes it until no trailing 
 				zeros are left. If the string becomes or innitally was zero length, it appends zero */
 
@@ -402,7 +402,7 @@ namespace BUILT_INS {
 
 			}
 			
-			std::string SignAppender(std::string input, bool sign) {
+			std::string signAppender(std::string input, bool sign) {
 				//If the sign is 1 (aka true aka negative), it appends the minus
 
 				if (sign == 1) {
@@ -412,7 +412,7 @@ namespace BUILT_INS {
 				return input;
 			}
 
-			std::string SignRemoval(std::string input) {
+			std::string signRemoval(std::string input) {
 				/*Removes the zero character of input if it is '+' or '-'*/
 
 
@@ -424,7 +424,7 @@ namespace BUILT_INS {
 				return input;
 			}
 
-			std::string PeriodNotationRemoval(std::string input) {
+			std::string periodNotationRemoval(std::string input) {
 				/*for() loop copies all of the data from input to output_string, however if '(' or 
 				')' are encountered, the loop skips the copy of these via the continue statement.*/
 				 
@@ -445,7 +445,7 @@ namespace BUILT_INS {
 				return output_string;
 			}
 
-			std::string DotRemoval(std::string input) {
+			std::string dotRemoval(std::string input) {
 
 				std::string output_string{};
 
@@ -462,7 +462,7 @@ namespace BUILT_INS {
 				return output_string;
 			}
 
-			std::string PeriodExpander(std::string input, uint64_t precision) {
+			std::string periodExpander(std::string input, uint64_t precision) {
 
 				std::string output_string{};
 
@@ -484,12 +484,12 @@ namespace BUILT_INS {
 				return output_string;
 			}
 
-			value DecimalSeparator(std::string input) {
+			Value decimalSeparator(std::string input) {
 				/*This function separates the input into two strings: 
 				WHOLE_return_val and FRAC_return_val
 				*/
 
-				value output;
+				Value output;
 
 				for (char i : input) {
 					
@@ -506,11 +506,11 @@ namespace BUILT_INS {
 							continue;
 						}
 
-						output.WHOLE_return_val += i;
+						output.whole_part += i;
 					}
 
 					else {
-						output.FRAC_digit_val += i;
+						output.frac_part += i;
 					}
 					
 					
@@ -518,25 +518,25 @@ namespace BUILT_INS {
 				}
 				
 				//To properly account for inputs like 5.
-				if (output.is_a_frac == true && output.FRAC_digit_val.length() == 0) {
+				if (output.is_a_frac == true && output.frac_part.length() == 0) {
 
-					output.FRAC_digit_val += '0';
+					output.frac_part += '0';
 				}
 
 				return output;
 			}
 
-			value PeriodSorter(std::string fractional_part) {
+			Value periodSorter(std::string fractional_part) {
 
-				value output;
+				Value output;
 
 				//Formats the input, so empty spaces wont slip in 
-				fractional_part = SpaceRemoval(fractional_part);
+				fractional_part = spaceRemoval(fractional_part);
 
 				//If the input is zero length, we error
 				if (fractional_part.length() == 0) {
 					
-					output.flag = F_INVALID_INP;
+					output.flag = f_invalid_input;
 					return output;
 				}
 				
@@ -563,8 +563,8 @@ namespace BUILT_INS {
 					//Error handler: if the digits are already in period and the current character is '(' again, we raise an error
 					else if (is_in_period == true && fractional_part[index] == '(') {
 
-						output = value{};
-						output.flag = F_INVALID_INP;
+						output = Value{};
+						output.flag = f_invalid_input;
 						return output;
 					}
 
@@ -574,8 +574,8 @@ namespace BUILT_INS {
 						//Error handler for empty periods -- 0.5() is recognized as invalid input 
 						if (fractional_part[index - 1] == '(') {
 
-							output = value{};
-							output.flag = F_INVALID_INP;
+							output = Value{};
+							output.flag = f_invalid_input;
 							return output;
 						}
 
@@ -588,8 +588,8 @@ namespace BUILT_INS {
 					//Error handler: If the current digit is not in period and the character is ')' -> raise error.
 					else if (is_in_period == false && fractional_part[index] == ')') {
 						
-						output = value{};
-						output.flag = F_INVALID_INP;
+						output = Value{};
+						output.flag = f_invalid_input;
 						return output;
 					}
 
@@ -597,11 +597,11 @@ namespace BUILT_INS {
 					//Copies the periodic parts of a string and non-periodic parts into their desired places
 					if (is_in_period == false) {
 
-						output.FRAC_nonperiod_val += fractional_part[index];
+						output.frac_nonperiod_part += fractional_part[index];
 					}
 					else {
 						
-						output.FRAC_period_val += fractional_part[index];
+						output.frac_period_part += fractional_part[index];
 					}
 					
 				}
@@ -611,8 +611,8 @@ namespace BUILT_INS {
 				//It also accounts for weird inputs like (543 or ( 
 				if (is_a_periodic_fraction == true && fractional_part.back() != ')') {
 					
-					output = value{};
-					output.flag = F_INVALID_INP;
+					output = Value{};
+					output.flag = f_invalid_input;
 					return output;
 				}
 
@@ -623,9 +623,9 @@ namespace BUILT_INS {
 
 		}
 		
-		namespace INP_CHECK {
+		namespace InpCheck {
 
-			bool IsUnsigned(std::string input) {
+			bool isUnsigned(std::string input) {
 
 				if (input.length() == 0) {
 					
@@ -640,7 +640,7 @@ namespace BUILT_INS {
 				return false;
 			}
 
-			bool IsANegative(std::string input, bool include_neg_zero) {
+			bool isNegative(std::string input, bool include_neg_zero) {
 			//Note that empty strings are treated as 0, so "" and "-" are treated as  0 and -0 respectively 
 
 				if (input[0] == '-') {
@@ -675,7 +675,7 @@ namespace BUILT_INS {
 
 			}
 
-			bool IsANumber(std::string input, std::string num_sys) {
+			bool isNumber(std::string input, std::string num_sys) {
 				/*This function takes each digit of input and checks its validity by comparing
 				it with each number system's digit.*/
 
@@ -712,7 +712,7 @@ namespace BUILT_INS {
 				return is_a_number;
 			} 
 
-			bool IsAbsGreater(std::string input, std::string threshold) {
+			bool isAbsGreater(std::string input, std::string threshold) {
 				//This function works by comparing each input string's character's ASCII code point
 				//With the treshold string's character's ASCII code point 
 				
@@ -721,8 +721,8 @@ namespace BUILT_INS {
 				//(which most likely will cause unexpected behavior)
 
 				//Removes empty spaces, leading zeros and signs
-				input = INP_EDIT::LeadingZeroRemoval(INP_EDIT::SignRemoval(INP_EDIT::SpaceRemoval(input)));
-				threshold = INP_EDIT::LeadingZeroRemoval(INP_EDIT::SignRemoval(INP_EDIT::SpaceRemoval(threshold)));
+				input = InpEdit::leadingZeroRemoval(InpEdit::signRemoval(InpEdit::spaceRemoval(input)));
+				threshold = InpEdit::leadingZeroRemoval(InpEdit::signRemoval(InpEdit::spaceRemoval(threshold)));
 				
 				if (input.length() > threshold.length()) {
 
@@ -755,7 +755,7 @@ namespace BUILT_INS {
 
 			}
 
-			bool IsAFraction(std::string input) {
+			bool isFraction(std::string input) {
 				
 				for (char i : input) {
 					
@@ -766,20 +766,20 @@ namespace BUILT_INS {
 				return false;
 			}
 
-			bool IsEqual(std::string input, std::string threshold) {
+			bool isEqual(std::string input, std::string threshold) {
 				
 				return input == threshold;
 			}
 
-			bool IsGreaterThan(std::string input, std::string threshold) {
+			bool isGreaterThan(std::string input, std::string threshold) {
 
 				//Signs
-				bool inp_sign{ IsANegative(input) };
-				bool trs_sign{ IsANegative(threshold) };
+				bool inp_sign{ isNegative(input) };
+				bool trs_sign{ isNegative(threshold) };
 
 
 				//case 0: both inputs equal to each other
-				if (IsEqual(input, threshold) == true) {
+				if (isEqual(input, threshold) == true) {
 					return false;
 				}
 
@@ -796,13 +796,13 @@ namespace BUILT_INS {
 				//case 3: input is positive, threshold is positive (magnitude comparison)
 				else if (inp_sign == 0 && trs_sign == 0) {
 
-					return IsAbsGreater(input, threshold);
+					return isAbsGreater(input, threshold);
 				}
 
 				//case 4: input is negative, threshold is negative (magnitude comparison)
 				else if (inp_sign == 1 && trs_sign == 1) {
 					
-					return !IsAbsGreater(input, threshold);
+					return !isAbsGreater(input, threshold);
 				}
 				
 
@@ -810,18 +810,18 @@ namespace BUILT_INS {
 				
 			}
 
-			bool IsLessThan(std::string input, std::string threshold) {
+			bool isLessThan(std::string input, std::string threshold) {
 				
 				//If they inputs are still equal in length, we return false
-				if (IsEqual(input, threshold) == true) {
+				if (isEqual(input, threshold) == true) {
 					return false;
 				}
 				
 				//Its just the reverse of IsGreaterThan (I mean...come on its logical!)
-				return !IsGreaterThan(input, threshold);
+				return !isGreaterThan(input, threshold);
 			}
 
-			bool IsPeriodic(std::string input) {
+			bool isPeriodic(std::string input) {
 				//Simply checks whether does an input contain the '(' character or no
 
 				for (char i : input) {
@@ -835,7 +835,7 @@ namespace BUILT_INS {
 				return false;
 			}
 			
-			uint64_t LeadingZeroCounter(std::string input) {
+			uint64_t leadingZeroCounter(std::string input) {
 				
 				uint64_t leading_zeros{};
 				
@@ -850,73 +850,73 @@ namespace BUILT_INS {
 			}
 		}
 
-		value InpValueParser(std::string input, std::string num_sys, std::string min_int_num, std::string max_int_num, uint64_t max_frac_digit_amount, bool remove_leading_zeroes, bool remove_trailing_zeros, bool include_neg_zero) {
+		Value valueParser(std::string input, std::string num_sys, std::string min_int_num, std::string max_int_num, uint64_t max_frac_digit_amount, bool remove_leading_zeroes, bool remove_trailing_zeros, bool include_neg_zero) {
 
-			value output;
+			Value output;
 
 			
 			//Formating + sign check
-			input = INP_EDIT::SpaceRemoval(input);
+			input = InpEdit::spaceRemoval(input);
 
 			if (input[0] == '+') {
 
 				output.has_explicit_plus = true;
 			}
-			output.sign = INP_CHECK::IsANegative(input, include_neg_zero);
-			input = INP_EDIT::SignRemoval(input);
+			output.sign = InpCheck::isNegative(input, include_neg_zero);
+			input = InpEdit::signRemoval(input);
 
 			//'.' is treated as 0.0 which is wrong
 			if (input.length() == 0 || input == ".") {
 			
-				output = value{};
-				output.flag = F_INVALID_INP;
+				output = Value{};
+				output.flag = f_invalid_input;
 				return output;
 			}
 
 
-			output.WHOLE_return_val = INP_EDIT::DecimalSeparator(input).WHOLE_return_val;
+			output.whole_part = InpEdit::decimalSeparator(input).whole_part;
 
 			if (remove_leading_zeroes) {
-				output.WHOLE_return_val = INP_EDIT::LeadingZeroRemoval(output.WHOLE_return_val);
+				output.whole_part = InpEdit::leadingZeroRemoval(output.whole_part);
 			}
 
 			//For performance and maintability reasons, we format the input removing both the
 			//Decimal separator and the period notation and only then check the remaining digits for their validity
-			if (INP_CHECK::IsANumber(output.WHOLE_return_val, num_sys) == false) {
+			if (InpCheck::isNumber(output.whole_part, num_sys) == false) {
 
 				//Reset the output and set the error flag
-				output = value{};
-				output.flag = F_INVALID_INP;
+				output = Value{};
+				output.flag = f_invalid_input;
 
 				return output;
 			}
 
 
-			if (INP_CHECK::IsAFraction(input) == true) {
+			if (InpCheck::isFraction(input) == true) {
 
 
 
 				output.is_a_frac = true;
 
 				
-				output.FRAC_digit_val = INP_EDIT::DecimalSeparator(input).FRAC_digit_val;
+				output.frac_part = InpEdit::decimalSeparator(input).frac_part;
 				
 				
 
 				//For inputs like '5.' or '0.'
-				if (output.FRAC_digit_val.length() == 0) {
-					output.FRAC_digit_val += '0';
+				if (output.frac_part.length() == 0) {
+					output.frac_part += '0';
 				}
 
 				
 
 				//Fractional part and integer part are checked separately because integer part does not contain period
 				//whereas fractional part does. Without the split either (6).5 becomes valid, or period notation won't be valid whatsoever
-				if (INP_CHECK::IsANumber(INP_EDIT::PeriodNotationRemoval(output.FRAC_digit_val), num_sys) == false) {
+				if (InpCheck::isNumber(InpEdit::periodNotationRemoval(output.frac_part), num_sys) == false) {
 
 					//Reset the output and set the error flag
-					output = value{};
-					output.flag = F_INVALID_INP;
+					output = Value{};
+					output.flag = f_invalid_input;
 
 					return output;
 				}
@@ -926,41 +926,41 @@ namespace BUILT_INS {
 				if (remove_trailing_zeros) {
 					
 					
-					output.FRAC_digit_val = INP_EDIT::TrailingZeroRemoval(output.FRAC_digit_val);
+					output.frac_part = InpEdit::trailingZeroRemoval(output.frac_part);
 
 				}
 
 				//For performance and maintabilitiy  reasons, we check the length of a fractional part prior
 				//to any operations
-				if (INP_EDIT::PeriodNotationRemoval(output.FRAC_digit_val).length() > max_frac_digit_amount) {
+				if (InpEdit::periodNotationRemoval(output.frac_part).length() > max_frac_digit_amount) {
 
-					output = value{};
-					output.flag = F_SIGNIFICAND_OVERFLOW;
+					output = Value{};
+					output.flag = f_mantissa_overflow;
 					return output;
 				}
 
 
-				if (INP_CHECK::IsPeriodic(output.FRAC_digit_val) == true) {
+				if (InpCheck::isPeriodic(output.frac_part) == true) {
 					
 					//Error for wrong period notation
-					if (INP_EDIT::PeriodSorter(output.FRAC_digit_val).flag == F_INVALID_INP) {
+					if (InpEdit::periodSorter(output.frac_part).flag == f_invalid_input) {
 
-						output = value{};
-						output.flag = F_INVALID_INP;
+						output = Value{};
+						output.flag = f_invalid_input;
 						return output;
 					}
 
 
 					//Secondary split of FRAC_return_val into nonperiodic part and periodic
-					output.FRAC_nonperiod_val = INP_EDIT::PeriodSorter(output.FRAC_digit_val).FRAC_nonperiod_val;
-					output.FRAC_period_val = INP_EDIT::PeriodSorter(output.FRAC_digit_val).FRAC_period_val;
+					output.frac_nonperiod_part = InpEdit::periodSorter(output.frac_part).frac_nonperiod_part;
+					output.frac_period_part = InpEdit::periodSorter(output.frac_part).frac_period_part;
 				}
 				
 				
 
 				
-				if (INP_CHECK::IsPeriodic(output.FRAC_digit_val) == false) {
-					output.FRAC_nonperiod_val = output.FRAC_digit_val;
+				if (InpCheck::isPeriodic(output.frac_part) == false) {
+					output.frac_nonperiod_part = output.frac_part;
 				}
 				
 				
@@ -979,10 +979,10 @@ namespace BUILT_INS {
 					leading_minus += '-';
 				}
 
-				if (INP_CHECK::IsLessThan(leading_minus +  output.WHOLE_return_val, min_int_num) == true || INP_CHECK::IsGreaterThan( leading_minus + output.WHOLE_return_val, max_int_num) == true) {
+				if (InpCheck::isLessThan(leading_minus +  output.whole_part, min_int_num) == true || InpCheck::isGreaterThan( leading_minus + output.whole_part, max_int_num) == true) {
 					
-					output = value{};
-					output.flag = F_OUT_OF_BOUNDS;
+					output = Value{};
+					output.flag = f_out_of_bounds;
 					return output;
 				}
 			}
@@ -991,26 +991,26 @@ namespace BUILT_INS {
 
 		}
 
-		int_parser ToDec(std::string input) {
+		IntParser toDec(std::string input) {
 
-			int_parser output;
+			IntParser output;
 		
 
 			//Checks whether is the input written in decimal
-			if (BUILT_INS::INP_HANDLING::INP_CHECK::IsANumber(input, DECIMAL_SYS) == false) {
+			if (BuiltIns::InpHandling::InpCheck::isNumber(input, kDecimalSys) == false) {
 				
 
-				output = int_parser{};
-				output.flag = F_INVALID_INP;
+				output = IntParser{};
+				output.flag = f_invalid_input;
 				return output;
 			}
 
 			//Checks whether does the input exceed the max value, because using overly
 			//large string inputs that exceed UINT64_MAX will result in wrap-around
-			if (BUILT_INS::INP_HANDLING::INP_CHECK::IsAbsGreater(input, MAX_64DEC_NUM) == true) {
+			if (BuiltIns::InpHandling::InpCheck::isAbsGreater(input, kMaxDec) == true) {
 
-				output = int_parser{};
-				output.flag = F_OUT_OF_BOUNDS;
+				output = IntParser{};
+				output.flag = f_out_of_bounds;
 				return output;
 			}
 
@@ -1025,7 +1025,7 @@ namespace BUILT_INS {
 				length--;
 				// i - '0' converts the ASCII character into a proper integer digit by ASCII index subtraction 
 				// For instance, let i be '1'. Its ASCII value is 31, and the ASCII value of '0' is 30, hence 31 - 30 = 1
-				return_value += (i - '0') * Power(10, length);
+				return_value += (i - '0') * power(10, length);
 			}
 
 			output.numerator = return_value;
@@ -1033,7 +1033,7 @@ namespace BUILT_INS {
 			return output;
 		}
 
-		int_parser ToFraction(std::string fractional_input) {
+		IntParser toRational(std::string fractional_input) {
 			/*This is a decimal fraction to ordinary fraction converter. It supports both repeating and non-repeating
 			* sequences. Let's see how it works! 
 			* 
@@ -1075,35 +1075,35 @@ namespace BUILT_INS {
 			* 
 			*/
 
-			value parsed_input;
-			int_parser output;
+			Value parsed_input;
+			IntParser output;
 
 			
-			parsed_input = InpValueParser("0." + fractional_input, DECIMAL_SYS, "0", MAX_64DEC_NUM);
+			parsed_input = valueParser("0." + fractional_input, kDecimalSys, "0", kMaxDec);
 											
 			//Error Handling							
 			if (parsed_input.flag != 0) {
 
-				output = int_parser{};
+				output = IntParser{};
 				output.flag = parsed_input.flag;
 				
 				return output;
 			}
 				
-			uint64_t nonperiod_digits{ BUILT_INS::INP_HANDLING::ToDec(parsed_input.FRAC_nonperiod_val).numerator };
-			uint64_t period_digits{ BUILT_INS::INP_HANDLING::ToDec(parsed_input.FRAC_period_val).numerator };
+			uint64_t nonperiod_digits{ BuiltIns::InpHandling::toDec(parsed_input.frac_nonperiod_part).numerator };
+			uint64_t period_digits{ BuiltIns::InpHandling::toDec(parsed_input.frac_period_part).numerator };
 
-			uint64_t nonperiod_length{ parsed_input.FRAC_nonperiod_val.length() };
-			uint64_t period_length{ parsed_input.FRAC_period_val.length() };
+			uint64_t nonperiod_length{ parsed_input.frac_nonperiod_part.length() };
+			uint64_t period_length{ parsed_input.frac_period_part.length() };
 	
 			//To prevent division by zero
-			if (parsed_input.FRAC_period_val.length() == 0) {
+			if (parsed_input.frac_period_part.length() == 0) {
 				
 				period_length++;
 			}
 
-			output.numerator = nonperiod_digits * (BUILT_INS::Power(10, period_length) - 1) + period_digits;
-			output.denominator = BUILT_INS::Power(10, nonperiod_length) * (BUILT_INS::Power(10, period_length) - 1);
+			output.numerator = nonperiod_digits * (BuiltIns::power(10, period_length) - 1) + period_digits;
+			output.denominator = BuiltIns::power(10, nonperiod_length) * (BuiltIns::power(10, period_length) - 1);
 			
 
 
@@ -1112,63 +1112,63 @@ namespace BUILT_INS {
 
 	}
 
-	namespace DIAGNOSTICS {
+	namespace Diagnostics {
 
-		bool ErrorHandler(std::string input, uint16_t flag, std::string min_num, std::string max_num) {
+		bool errorHandler(std::string input, uint16_t flag, std::string min_num, std::string max_num) {
 
-			if (flag == F_INVALID_INP) {
-				ConversionError(input);
+			if (flag == f_invalid_input) {
+				conversionError(input);
 				return true;
 			}
 
-			else if (flag == F_OUT_OF_BOUNDS) {
-				OverflowError(min_num, max_num);
+			else if (flag == f_out_of_bounds) {
+				overflowError(min_num, max_num);
 				return true;
 			}
 
-			else if (flag == F_SIGNIFICAND_OVERFLOW) {
-				MantissaOverflowError(std::to_string(MAX_FRAC_DIGITS));
+			else if (flag == f_mantissa_overflow) {
+				mantissaOverflowError(std::to_string(kMaxMantissa));
 				return true;
 			}
 
 			return false;
 		}
 
-		void ConversionError(std::string input) {
+		void conversionError(std::string input) {
 			
-			std::string error_red{ VIEW::UTILS::rgb666ToString(VIEW::error_red[0], VIEW::error_red[1], VIEW::error_red[2]) };
-			std::cout << VIEW::italic << error_red << "'" << VIEW::reset << VIEW::reset_italic;
+			std::string error_red{ View::Utils::rgb666ToString(View::kErrorRed[0], View::kErrorRed[1], View::kErrorRed[2]) };
+			std::cout << View::kItalic << error_red << "'" << View::kReset << View::kResetItalic;
 			std::cout << input;
-			std::cout << VIEW::italic << error_red << "' isn't recognized as a valid input. \a" << VIEW::reset << VIEW::reset_italic;
+			std::cout << View::kItalic << error_red << "' isn't recognized as a valid input. \a" << View::kReset << View::kResetItalic;
 			
 			
 		}
 
-		void InvalidCommandError(std::string input) {
+		void invalidCommandError(std::string input) {
 
-			std::string error_red{ VIEW::UTILS::rgb666ToString(VIEW::error_red[0], VIEW::error_red[1], VIEW::error_red[2]) };
-			std::cout << VIEW::italic << error_red << "The term '" << VIEW::reset << VIEW::reset_italic;
+			std::string error_red{ View::Utils::rgb666ToString(View::kErrorRed[0], View::kErrorRed[1], View::kErrorRed[2]) };
+			std::cout << View::kItalic << error_red << "The term '" << View::kReset << View::kResetItalic;
 			std::cout << input;
-			std::cout << VIEW::italic << error_red << "' is not recognized as a valid command or a valid input. \a \n\n" << VIEW::reset << VIEW::reset_italic;
+			std::cout << View::kItalic << error_red << "' is not recognized as a valid command or a valid input. \a \n\n" << View::kReset << View::kResetItalic;
 			
 		}
 
-		void OverflowError(std::string min_num, std::string max_num) {
+		void overflowError(std::string min_num, std::string max_num) {
 			
-			std::cout << VIEW::UTILS::rgb666ToString(VIEW::error_red[0], VIEW::error_red[1], VIEW::error_red[2]);
-			std::cout << VIEW::italic;
+			std::cout << View::Utils::rgb666ToString(View::kErrorRed[0], View::kErrorRed[1], View::kErrorRed[2]);
+			std::cout << View::kItalic;
 			std::cout << "Input is out of bounds (convertable value should be greater or equal than " << min_num << " or less or equal than " << max_num << "). \a";
-			std::cout << VIEW::reset << VIEW::reset_italic;
+			std::cout << View::kReset << View::kResetItalic;
 		
 		}
 
-		void MantissaOverflowError(std::string max_frac_digit){
+		void mantissaOverflowError(std::string max_frac_digit){
 			
-			std::cout << VIEW::UTILS::rgb666ToString(VIEW::error_red[0], VIEW::error_red[1], VIEW::error_red[2]);
-			std::cout << VIEW::italic;
+			std::cout << View::Utils::rgb666ToString(View::kErrorRed[0], View::kErrorRed[1], View::kErrorRed[2]);
+			std::cout << View::kItalic;
 			std::cout << "Input has too many digits in fractional part (max. convertable amount is " << max_frac_digit << " digits). \a";
-			std::cout << VIEW::reset_italic;
-			std::cout << VIEW::reset;
+			std::cout << View::kResetItalic;
+			std::cout << View::kReset;
 		
 		}
 

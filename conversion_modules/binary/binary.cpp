@@ -10,9 +10,9 @@
 #include "built_ins.h"
 #include "view.h"
 
-namespace BINARY_CONVERSION {
+namespace BinaryConversion {
 	
-	namespace UTILS {
+	namespace Utils {
 
 		std::string intDecToBin(uint64_t integer_part) {
 			//The conversion is done by constantly dividing the integer_part by 2, assigning the zero index  of bin_output
@@ -131,16 +131,16 @@ namespace BINARY_CONVERSION {
 			return output;
 		}
 
-		BUILT_INS::int_parser intBinToDec(std::string integer_part) {
+		BuiltIns::IntParser intBinToDec(std::string integer_part) {
 			//The conversion is done by summing up powers of two multiplied by either 1 or 0 
 			//So input like 101 will be 1 * 2^2 (corresponding to most significand digit) + 0 * 2^1 + 1 * 2^0
 			
 
-			BUILT_INS::int_parser output;
+			BuiltIns::IntParser output;
 			
 			if (integer_part.length() == 0) {
 
-				output.flag = F_INVALID_INP;
+				output.flag = BuiltIns::f_invalid_input;
 				return output;
 			}
 
@@ -153,14 +153,14 @@ namespace BINARY_CONVERSION {
 
 				if (i == '1') {
 
-					output.numerator += BUILT_INS::Power(2, bit_size);
+					output.numerator += BuiltIns::power(2, bit_size);
 				}
 
 				else if (i != '0') {
 					
 					
-					output = BUILT_INS::int_parser{};
-					output.flag = F_INVALID_INP;
+					output = BuiltIns::IntParser{};
+					output.flag = BuiltIns::f_invalid_input;
 					return output;
 				}
 
@@ -171,7 +171,7 @@ namespace BINARY_CONVERSION {
 		
 		}
 		
-		BUILT_INS::int_parser fracBinToDec(std::string fractional_part) {
+		BuiltIns::IntParser fracBinToDec(std::string fractional_part) {
 
 			/*
 			* In order to avoid ANY floating point rounding, we use only integer arithmetics!
@@ -188,12 +188,12 @@ namespace BINARY_CONVERSION {
 			* m - either 0 or 1.
 			*/
 
-			BUILT_INS::int_parser output;
+			BuiltIns::IntParser output;
 
 			
 			//Note that a numerator part can be evaluated just by using intBinToDec!
 			
-			output = UTILS::intBinToDec(fractional_part);
+			output = Utils::intBinToDec(fractional_part);
 
 			//Early return so the denominator wont be overwritten
 			if (output.flag != 0) {
@@ -202,12 +202,12 @@ namespace BINARY_CONVERSION {
 				return output;
 			}
 
-			output.denominator = BUILT_INS::Power(2, fractional_part.length());
+			output.denominator = BuiltIns::power(2, fractional_part.length());
 
 			return output;
 		}
 
-		BUILT_INS::int_parser fracBinToDecPeriod(std::string digits_in_period, uint64_t start_index) {
+		BuiltIns::IntParser fracBinToDecPeriod(std::string digits_in_period, uint64_t start_index) {
 			/*This function doens't use any floating point arithmetics, so integer only calculations! How this works:
 			* lets imagine a periodic sequence like 0.(0011)_2 =  0*2^(-1) + 0*2^(-2) + 1*2^(-3) + 1*2^(-4)  + 0*2^(-5) + 0*2^(-6) + 1*2^(-7) + 1*2^(-8) ... 
 			* We see that that digits go on repeating forever. We can factor out the exponent and write this sequence in a different manner:
@@ -230,7 +230,7 @@ namespace BINARY_CONVERSION {
 			//k - amount of digits in period
 			//x - index of a first digit in period
 			//m - either 0 or 1
-			BUILT_INS::int_parser output;
+			BuiltIns::IntParser output;
 			
 			output.flag = fracBinToDec(digits_in_period).flag;
 
@@ -243,13 +243,13 @@ namespace BINARY_CONVERSION {
 			
 			//2^(-x) related calculations:
 			//We only need the denominator, because the numerator is 1 and hence wont affect multiplication
-			uint64_t denom_digit_shift{ BUILT_INS::Power(2, start_index) };
+			uint64_t denom_digit_shift{ BuiltIns::power(2, start_index) };
 
 			
 			// ( 1/ (1 - 2^(-k) ) ) related calculations:
 			// We can rewrite the 1/(1 - 2^(-k)) to a much more readable (2^(k))/(2^(k) - 1)
-			uint64_t num_sigma{ BUILT_INS::Power(2, digits_in_period.length() )};
-			uint64_t denom_sigma{ BUILT_INS::Power(2, digits_in_period.length()) - 1 };
+			uint64_t num_sigma{ BuiltIns::power(2, digits_in_period.length() )};
+			uint64_t denom_sigma{ BuiltIns::power(2, digits_in_period.length()) - 1 };
 
 
 			// ( 1*2^(-1) + 1*2^(-2) + 0*2^(-3) + ... + m*2^(-k) ) related calculations:
@@ -265,7 +265,7 @@ namespace BINARY_CONVERSION {
 			return output;
 		}
 
-		std::string BinaryFlip(std::string input) {
+		std::string binaryFlip(std::string input) {
 
 			std::string output{};
 
@@ -293,7 +293,7 @@ namespace BINARY_CONVERSION {
 			return output;
 		}
 
-		std::string BinAdd(std::string operand1, std::string operand2) {
+		std::string binAdd(std::string operand1, std::string operand2) {
 			
 			std::string output_string{ "" };
 
@@ -374,9 +374,9 @@ namespace BINARY_CONVERSION {
 
 			//Unsigned wrap-around-like resizeding, where if the number exceeds the given bit range, 
 			//the most significant digits of it will be erased away, until the number can fit 
-			if (output_string.length() > MAX_BIT_VALUE) { 
+			if (output_string.length() > BuiltIns::kMaxBitValue) { 
 
-				output_string.erase(0, output_string.length() - MAX_BIT_VALUE);
+				output_string.erase(0, output_string.length() - BuiltIns::kMaxBitValue);
 
 				
 			}
@@ -424,95 +424,47 @@ namespace BINARY_CONVERSION {
 			return is_a_flag;
 		}
 
-		replxx::Replxx::colors_t& RvalueHighlighter(std::string const& input_buffer, replxx::Replxx::colors_t& color_buffer, replxx::Replxx::Color desired_color) {
-
-
-			std::vector<std::string> tokens{};
-			tokens = BUILT_INS::INP_HANDLING::Tokenizer(input_buffer, tokens);
-
-			size_t index{};
-			size_t offset{};
-
-			//rValue can only be invoked in SBIN_TO_DEC conversion!
-			bool is_rValue_possible{ false };
-
-
-			for (std::string token : tokens) {
-
-				if (token == "SBIN_TO_DEC") {
-
-					is_rValue_possible = true;
-				}
-
-				if (BINARY_CONVERSION::UTILS::isRawBin(token, BINARY_CONVERSION::FORMAT::INT::bit_size_presets) == true && BUILT_INS::INP_HANDLING::INP_CHECK::IsANumber(token, BINARY_SYS) == true && is_rValue_possible) {
-
-					index = input_buffer.find(token);
-
-					if (index != input_buffer.npos) {
-
-						while (offset < token.length()) {
-
-							color_buffer[index + offset] = desired_color;
-							offset++;
-						}
-
-						offset = 0;
-					}
-
-					//Ensures that even if there are two identical rValues, both will be highlighted
-					index++;
-
-					is_rValue_possible = false;
-				}
-
-
-			}
-
-
-			return color_buffer;
-		}
-
 	}
 
-	namespace DIAGNOSTICS {
+	namespace Diagnostics {
 
 		
-		void IntermediateValue(std::string value) {
+		void intermediateValue(std::string value) {
 
-			std::cout << VIEW::italic;
-			std::cout <<"Intermediate value: " << VIEW::reset_italic << value  << '\n';
+			std::cout << View::kItalic;
+			std::cout <<"Intermediate value: " << View::kResetItalic << value  << '\n';
 		}
 
-		void WrapAroundWarning(uint16_t bit_size) {
+		void wrapAroundWarning(uint16_t bit_size) {
 
-			std::cout << VIEW::UTILS::rgb666ToString(VIEW::warning_yellow[0], VIEW::warning_yellow[1], VIEW::warning_yellow[2]);
-			std::cout << VIEW::italic << "The value has been wrapped around within " << VIEW::reset_italic;
+			std::cout << View::Utils::rgb666ToString(View::kWarningYellow[0], View::kWarningYellow[1], View::kWarningYellow[2]);
+			std::cout << View::kItalic << "The value has been wrapped around within " << View::kResetItalic;
 			std::cout << bit_size;
-			std::cout << VIEW::italic << " bits." << VIEW::reset_italic << '\a' << '\n';
-			std::cout << VIEW::reset;
+			std::cout << View::kItalic << " bits." << View::kResetItalic << '\a' << '\n';
+			std::cout << View::kReset;
 		}
 
-		void TruncationWarning(uint16_t bit_size) {
+		void truncationWarning(uint16_t bit_size) {
 
-			std::cout << VIEW::UTILS::rgb666ToString(VIEW::warning_yellow[0], VIEW::warning_yellow[1], VIEW::warning_yellow[2]);
-			std::cout << VIEW::italic;
+			std::cout << View::Utils::rgb666ToString(View::kWarningYellow[0], View::kWarningYellow[1], View::kWarningYellow[2]);
+			std::cout << View::kItalic;
 			std::cout << "The value has been truncated to " << bit_size << " bits." << '\a' << '\n';
-			std::cout << VIEW::reset << VIEW::reset_italic;
+			std::cout << View::kReset << View::kResetItalic;
 		}
 
-		void PrecisionLossWarning() {
+		void precisionLossWarning() {
 
-			std::cout << VIEW::UTILS::rgb666ToString(VIEW::warning_yellow[0], VIEW::warning_yellow[1], VIEW::warning_yellow[2]);
-			std::cout << VIEW::italic;
+			std::cout << View::Utils::rgb666ToString(View::kWarningYellow[0], View::kWarningYellow[1], View::kWarningYellow[2]);
+			std::cout << View::kItalic;
 			std::cout << "Precision loss during conversion. \a \n";
-			std::cout << VIEW::reset << VIEW::reset_italic;
+			std::cout << View::kReset << View::kResetItalic;
 		}
 
-		void SetFormatMessage(std::string FORMAT, bool conversion_type, bool is_a_fraction) {
+		void setFormatMessage(std::string FORMAT, bool conversion_type, bool is_a_fraction) {
 
 			std::string conversion_mode{};
 			
-			if (conversion_type == DecToBin) {
+			if (conversion_type == dec_to_bin) {
 
 				
 				conversion_mode = "SDEC_TO_BIN";
@@ -523,9 +475,9 @@ namespace BINARY_CONVERSION {
 				conversion_mode = "SBIN_TO_DEC";
 			}
 
-			std::string conversion_color{ VIEW::UTILS::rgb666ToString(VIEW::sconv_yellow[0], VIEW::sconv_yellow[1], VIEW::sconv_yellow[2]) };
+			std::string conversion_color{ View::Utils::rgb666ToString(View::kStandardYellow[0], View::kStandardYellow[1], View::kStandardYellow[2]) };
 			conversion_mode.insert(0, conversion_color);
-			conversion_mode += VIEW::reset;
+			conversion_mode += View::kReset;
 
 			std::string value_type{};
 			if (is_a_fraction == true) {
@@ -538,39 +490,39 @@ namespace BINARY_CONVERSION {
 				value_type = "integer";
 			}
 			
-			std::string ANSI_blue{ VIEW::UTILS::rgb666ToString(VIEW::format_blue[0], VIEW::format_blue[1], VIEW::format_blue[2]) };
+			std::string ansi_blue{ View::Utils::rgb666ToString(View::kFormatBlue[0], View::kFormatBlue[1], View::kFormatBlue[2]) };
 
-			std::cout << VIEW::italic << "Format '" << VIEW::reset_italic; 
-			std::cout << ANSI_blue + FORMAT + std::string(VIEW::reset);
-			std::cout << VIEW::italic << "' has been set for '" << VIEW::reset_italic;
+			std::cout << View::kItalic << "Format '" << View::kResetItalic; 
+			std::cout << ansi_blue + FORMAT + std::string(View::kReset);
+			std::cout << View::kItalic << "' has been set for '" << View::kResetItalic;
 			std::cout << conversion_mode;
-			std::cout << VIEW::italic << "' " << value_type << " conversions." << VIEW::reset_italic;
+			std::cout << View::kItalic << "' " << value_type << " conversions." << View::kResetItalic;
 			
 		}
 
-		void SetDefaultMessage(std::vector<std::string> default_formats) {
+		void setDefaultMessage(std::vector<std::string> default_formats) {
 
-			std::string ANSI_blue{ VIEW::UTILS::rgb666ToString(VIEW::format_blue[0], VIEW::format_blue[1], VIEW::format_blue[2]) };
-			std::string conversion_color{ VIEW::UTILS::rgb666ToString(VIEW::sconv_yellow[0], VIEW::sconv_yellow[1], VIEW::sconv_yellow[2]) };
+			std::string ansi_blue{ View::Utils::rgb666ToString(View::kFormatBlue[0], View::kFormatBlue[1], View::kFormatBlue[2]) };
+			std::string conversion_color{ View::Utils::rgb666ToString(View::kStandardYellow[0], View::kStandardYellow[1], View::kStandardYellow[2]) };
 
-			std::string SDEC_TO_BIN_conversion{conversion_color + "SDEC_TO_BIN" + std::string(VIEW::reset)};
-			std::string SBIN_TO_DEC_conversion{ conversion_color + "SBIN_TO_DEC" + std::string(VIEW::reset) };
+			std::string sdec_to_bin_conversion{conversion_color + "SDEC_TO_BIN" + std::string(View::kReset)};
+			std::string sbin_to_dec_conversion{ conversion_color + "SBIN_TO_DEC" + std::string(View::kReset) };
 			
 
-			std::cout << VIEW::italic << "Default formats have been set for '" << VIEW::reset_italic;
-			std::cout << SDEC_TO_BIN_conversion;
-			std::cout << VIEW::italic << "' and '" << VIEW::reset_italic;
-			std::cout << SBIN_TO_DEC_conversion;
-			std::cout << VIEW::italic << "': " << VIEW::reset_italic << '\n';
-			std::cout << VIEW::italic << "INT  : "  << VIEW::reset_italic << ANSI_blue +  default_formats[0] + std::string(VIEW::reset) << '\n';
-			std::cout << VIEW::italic << "FRAC : "  << VIEW::reset_italic << ANSI_blue + default_formats[1] + std::string(VIEW::reset);
+			std::cout << View::kItalic << "Default formats have been set for '" << View::kResetItalic;
+			std::cout << sdec_to_bin_conversion;
+			std::cout << View::kItalic << "' and '" << View::kResetItalic;
+			std::cout << sbin_to_dec_conversion;
+			std::cout << View::kItalic << "': " << View::kResetItalic << '\n';
+			std::cout << View::kItalic << "INT  : "  << View::kResetItalic << ansi_blue +  default_formats[0] + std::string(View::kReset) << '\n';
+			std::cout << View::kItalic << "FRAC : "  << View::kResetItalic << ansi_blue + default_formats[1] + std::string(View::kReset);
 		}
 		
-		void ShowLocal(std::vector<std::string> formats, bool conversion_type) {
+		void showLocal(std::vector<std::string> formats, bool conversion_type) {
 
 			std::string conversion_mode{};
 
-			if (conversion_type == DecToBin) {
+			if (conversion_type == dec_to_bin) {
 
 				conversion_mode = "SDEC_TO_BIN";
 			}
@@ -579,33 +531,33 @@ namespace BINARY_CONVERSION {
 				conversion_mode = "SBIN_TO_DEC";
 			}
 
-			std::string conversion_color{ VIEW::UTILS::rgb666ToString(VIEW::sconv_yellow[0], VIEW::sconv_yellow[1], VIEW::sconv_yellow[2]) };
+			std::string conversion_color{ View::Utils::rgb666ToString(View::kStandardYellow[0], View::kStandardYellow[1], View::kStandardYellow[2]) };
 			conversion_mode.insert(0, conversion_color);
-			conversion_mode += VIEW::reset;
+			conversion_mode += View::kReset;
 
-			std::string ANSI_blue{ VIEW::UTILS::rgb666ToString(VIEW::format_blue[0], VIEW::format_blue[1], VIEW::format_blue[2]) };
+			std::string ansi_blue{ View::Utils::rgb666ToString(View::kFormatBlue[0], View::kFormatBlue[1], View::kFormatBlue[2]) };
 
 
 			std::cout << '\n';
 			std::cout << conversion_mode << ':' << '\n';
-			std::cout << VIEW::italic << "INT  : " << VIEW::reset_italic;
-			std::cout <<  ANSI_blue +  formats[0] + std::string(VIEW::reset) << '\n';
-			std::cout << VIEW::italic << "FRAC : " << VIEW::reset_italic;
-			std::cout << ANSI_blue + formats[1] + std::string(VIEW::reset);
+			std::cout << View::kItalic << "INT  : " << View::kResetItalic;
+			std::cout <<  ansi_blue +  formats[0] + std::string(View::kReset) << '\n';
+			std::cout << View::kItalic << "FRAC : " << View::kResetItalic;
+			std::cout << ansi_blue + formats[1] + std::string(View::kReset);
 		}
 
 		
 	}
 
-	namespace DEFAULT_CONVERSION {
+	namespace DefaultConversion {
 
-		std::string DEC_TO_BIN(std::vector<std::string> &input_vector ) {
+		std::string decToBin(std::vector<std::string> &input_vector ) {
 			
-			std::string input_value{ BUILT_INS::INP_HANDLING::GetFirstToken(input_vector) };
+			std::string input_value{ BuiltIns::InpHandling::getFirstToken(input_vector) };
 
-			BUILT_INS::value parsed_input{ BUILT_INS::INP_HANDLING::InpValueParser(input_value, DECIMAL_SYS, std::string("-") + MAX_64DEC_NUM, MAX_64DEC_NUM) };
+			BuiltIns::Value parsed_input{ BuiltIns::InpHandling::valueParser(input_value, BuiltIns::kDecimalSys, std::string("-") + BuiltIns::kMaxDec, BuiltIns::kMaxDec) };
 			
-			if (BUILT_INS::DIAGNOSTICS::ErrorHandler(input_value, parsed_input.flag,  std::string("-") + MAX_64DEC_NUM , MAX_64DEC_NUM) == true) {
+			if (BuiltIns::Diagnostics::errorHandler(input_value, parsed_input.flag,  std::string("-") + BuiltIns::kMaxDec , BuiltIns::kMaxDec) == true) {
 				
 				return "";
 			}
@@ -618,38 +570,38 @@ namespace BINARY_CONVERSION {
 				
 				return_val += '.';
 
-				BUILT_INS::int_parser output;
+				BuiltIns::IntParser output;
 
-				output = BUILT_INS::INP_HANDLING::ToFraction(parsed_input.FRAC_digit_val);
+				output = BuiltIns::InpHandling::toRational(parsed_input.frac_part);
 
-				parsed_input.FRAC_digit_val = UTILS::fracDecToBin(output.numerator, output.denominator, MAX_FRAC_DIGITS);
+				parsed_input.frac_part = Utils::fracDecToBin(output.numerator, output.denominator, BuiltIns::kMaxMantissa);
 
 				if (output.numerator == output.denominator) {
 
-					parsed_input.FRAC_digit_val = '0';
-					parsed_input.WHOLE_return_val = std::to_string(BUILT_INS::INP_HANDLING::ToDec(parsed_input.WHOLE_return_val).numerator + 1);
+					parsed_input.frac_part = '0';
+					parsed_input.whole_part = std::to_string(BuiltIns::InpHandling::toDec(parsed_input.whole_part).numerator + 1);
 
 				}
 				
-				return_val.append(parsed_input.FRAC_digit_val);
+				return_val.append(parsed_input.frac_part);
 
 			}
 
 			
-			parsed_input.WHOLE_return_val = UTILS::intDecToBin(BUILT_INS::INP_HANDLING::ToDec(parsed_input.WHOLE_return_val).numerator);
-			parsed_input.WHOLE_return_val = BUILT_INS::INP_HANDLING::INP_EDIT::SignAppender(parsed_input.WHOLE_return_val, parsed_input.sign);
+			parsed_input.whole_part = Utils::intDecToBin(BuiltIns::InpHandling::toDec(parsed_input.whole_part).numerator);
+			parsed_input.whole_part = BuiltIns::InpHandling::InpEdit::signAppender(parsed_input.whole_part, parsed_input.sign);
 
-			return_val.insert(0, parsed_input.WHOLE_return_val);
+			return_val.insert(0, parsed_input.whole_part);
 			
 			return return_val;
 		}
-		std::string BIN_TO_DEC(std::vector<std::string>& input_vector) {
+		std::string binToDec(std::vector<std::string> &input_vector) {
 			
-			std::string input_value{ BUILT_INS::INP_HANDLING::GetFirstToken(input_vector) };
+			std::string input_value{ BuiltIns::InpHandling::getFirstToken(input_vector) };
 
-			BUILT_INS::value parsed_input{ BUILT_INS::INP_HANDLING::InpValueParser(input_value, BINARY_SYS, std::string("-") + MAX_64BIN_NUM, MAX_64BIN_NUM ) };
+			BuiltIns::Value parsed_input{ BuiltIns::InpHandling::valueParser(input_value, BuiltIns::kBinarySys, std::string("-") + BuiltIns::kMaxBin, BuiltIns::kMaxBin ) };
 			
-			if (BUILT_INS::DIAGNOSTICS::ErrorHandler(input_value, parsed_input.flag, std::string("-") + MAX_64BIN_NUM, MAX_64BIN_NUM) == true) {
+			if (BuiltIns::Diagnostics::errorHandler(input_value, parsed_input.flag, std::string("-") + BuiltIns::kMaxBin, BuiltIns::kMaxBin) == true) {
 				
 				return "";
 			}
@@ -658,24 +610,24 @@ namespace BINARY_CONVERSION {
 			//output is constructed by adding components parts of a number
 			std::string return_val{};
 			
-			parsed_input.WHOLE_return_val = std::to_string(UTILS::intBinToDec(parsed_input.WHOLE_return_val).numerator);
+			parsed_input.whole_part = std::to_string(Utils::intBinToDec(parsed_input.whole_part).numerator);
 			
 			if (parsed_input.is_a_frac == true) {
 		
 				return_val += '.';
 				
-				BUILT_INS::int_parser output;
+				BuiltIns::IntParser output;
 
-				uint64_t numerator{ UTILS::fracBinToDec(parsed_input.FRAC_nonperiod_val).numerator };
-				uint64_t denominator{ UTILS::fracBinToDec(parsed_input.FRAC_nonperiod_val).denominator };
+				uint64_t numerator{ Utils::fracBinToDec(parsed_input.frac_nonperiod_part).numerator };
+				uint64_t denominator{ Utils::fracBinToDec(parsed_input.frac_nonperiod_part).denominator };
 
 				//Add the logic for carry 
-				if (BUILT_INS::INP_HANDLING::INP_CHECK::IsPeriodic(parsed_input.FRAC_digit_val) == true) {
+				if (BuiltIns::InpHandling::InpCheck::isPeriodic(parsed_input.frac_part) == true) {
 
-					uint64_t period_index{ parsed_input.FRAC_nonperiod_val.length() };
+					uint64_t period_index{ parsed_input.frac_nonperiod_part.length() };
 					
-					uint64_t period_numerator{ BINARY_CONVERSION::UTILS::fracBinToDecPeriod(parsed_input.FRAC_period_val, period_index).numerator };
-					uint64_t period_denominator{ BINARY_CONVERSION::UTILS::fracBinToDecPeriod(parsed_input.FRAC_period_val, period_index).denominator };
+					uint64_t period_numerator{ BinaryConversion::Utils::fracBinToDecPeriod(parsed_input.frac_period_part, period_index).numerator };
+					uint64_t period_denominator{ BinaryConversion::Utils::fracBinToDecPeriod(parsed_input.frac_period_part, period_index).denominator };
 					
 					//Addition of these two fractions 
 					numerator = numerator * period_denominator + period_numerator * denominator;
@@ -688,35 +640,35 @@ namespace BINARY_CONVERSION {
 				//Carry handling (for inputs like 101.(111))
 				if (numerator == denominator) {
 
-					parsed_input.WHOLE_return_val = std::to_string(BUILT_INS::INP_HANDLING::ToDec(parsed_input.WHOLE_return_val).numerator + 1);
+					parsed_input.whole_part = std::to_string(BuiltIns::InpHandling::toDec(parsed_input.whole_part).numerator + 1);
 
-					parsed_input.FRAC_digit_val = "0";
+					parsed_input.frac_part = "0";
 				}
 
 				else {
 
-					parsed_input.FRAC_digit_val = BUILT_INS::DecimalDivision(numerator, denominator, MAX_FRAC_DIGITS).FRAC_digit_val;
+					parsed_input.frac_part = BuiltIns::decimalDivision(numerator, denominator, BuiltIns::kMaxMantissa).frac_part;
 				}
 				
 
-				return_val += parsed_input.FRAC_digit_val; 
+				return_val += parsed_input.frac_part; 
 
-				if (BUILT_INS::DecimalDivision(numerator, denominator, MAX_FRAC_DIGITS).flag == F_IMPRECISE_OUTPUT) {
+				if (BuiltIns::decimalDivision(numerator, denominator, BuiltIns::kMaxMantissa).flag == BuiltIns::f_precision_loss) {
 					
 					return_val.append("...");
 				}
 			}
 		
-			parsed_input.WHOLE_return_val = BUILT_INS::INP_HANDLING::INP_EDIT::SignAppender(parsed_input.WHOLE_return_val, parsed_input.sign);
+			parsed_input.whole_part = BuiltIns::InpHandling::InpEdit::signAppender(parsed_input.whole_part, parsed_input.sign);
 
 			//We don't assign the WHOLE_return_val to return_val, because we first need to handle carry logic, and only then add it all together
-			return_val.insert(0, parsed_input.WHOLE_return_val);
+			return_val.insert(0, parsed_input.whole_part);
 		
 			return return_val;
 		}
 	}
 
-	namespace STANDARD_CONVERSION {
+	namespace StandardConversion {
 		
 		
 		uint16_t modeSelector(std::string argument) {
@@ -726,7 +678,7 @@ namespace BINARY_CONVERSION {
 			//Mode 1: Error State:
 			if (argument.length() == 0) {
 
-				return F_INVALID_INP;
+				return BuiltIns::f_invalid_input;
 			}
 			
 			
@@ -767,13 +719,13 @@ namespace BINARY_CONVERSION {
 
 		}
 		
-		std::string STANDARD_CONVERTER(std::vector<std::string> &input, bool conversion_type) {
+		std::string standardConverter(std::vector<std::string> &input, bool conversion_type) {
 			//Conversion type is a bool because we either convert DEC_TO_BIN or BIN_TO_DEC
 			//Built-in formats: 
 			//INT - TWOS_COMP
 			//FRAC - IEEE754 FAMILY
 
-			std::string input_token{ BUILT_INS::INP_HANDLING::GetFirstToken(input) };
+			std::string input_token{ BuiltIns::InpHandling::getFirstToken(input) };
 			std::string return_val{};
 			
 			//std::string user_input_string{input_token + ' ' + arg2};
@@ -784,9 +736,9 @@ namespace BINARY_CONVERSION {
 			uint16_t converter_mode{ modeSelector(input_token) };
 
 			//Error state
-			if (converter_mode == F_INVALID_INP) {
+			if (converter_mode == BuiltIns::f_invalid_input) {
 			
-				BUILT_INS::DIAGNOSTICS::ConversionError(input_token);
+				BuiltIns::Diagnostics::conversionError(input_token);
 				return "";
 			}
 
@@ -803,23 +755,23 @@ namespace BINARY_CONVERSION {
 				
 				if (!input.empty()) {
 
-					is_a_flag = UTILS::isAFlag(input[0], FORMAT::INT::resize_flags);
+					is_a_flag = Utils::isAFlag(input[0], Format::Int::resize_flags);
 				}
 
 				if (is_a_flag == true) {
-					flag = BUILT_INS::INP_HANDLING::GetFirstToken(input);
+					flag = BuiltIns::InpHandling::getFirstToken(input);
 				}
 
 				
 
-				if (conversion_type == DecToBin) {
+				if (conversion_type == dec_to_bin) {
 
-					return_val = FORMAT::FORMAT_CONVERTER(conversion_type, input_token, flag, SDEC_TO_BIN_formats[0]);
+					return_val = Format::formatConverter(conversion_type, input_token, flag, sdec_to_bin_formats[0]);
 				}
 				
 				else {
 
-					return_val = FORMAT::FORMAT_CONVERTER(conversion_type, input_token, flag, SBIN_TO_DEC_formats[0]);
+					return_val = Format::formatConverter(conversion_type, input_token, flag, sbin_to_dec_formats[0]);
 				}
 
 
@@ -828,16 +780,16 @@ namespace BINARY_CONVERSION {
 			//Format-change
 			else if (converter_mode == set_local || converter_mode == set_global){
 				
-				std::string user_format{ BUILT_INS::INP_HANDLING::GetFirstToken(input)};
+				std::string user_format{ BuiltIns::InpHandling::getFirstToken(input)};
 
 			
-				uint16_t type{ FORMAT::formatType(user_format) };
+				uint16_t type{ Format::formatType(user_format) };
 
 				//UNSIGNED isn't recognized as a configurable format, its just an implicit one which can be called via U prefix
-				if (type == F_INVALID_INP || user_format == int_formats[0]) {
+				if (type == BuiltIns::f_invalid_input || user_format == int_formats[0]) {
 
 
-					BUILT_INS::DIAGNOSTICS::ConversionError(user_format);
+					BuiltIns::Diagnostics::conversionError(user_format);
 					return "";
 
 				}
@@ -845,57 +797,57 @@ namespace BINARY_CONVERSION {
 				if (converter_mode == set_global) {
 
 					
-					if (type == INT_FORMAT) {
+					if (type == int_format) {
 
-						SDEC_TO_BIN_formats[0] = user_format;
-						SBIN_TO_DEC_formats[0] = user_format;
+						sdec_to_bin_formats[0] = user_format;
+						sbin_to_dec_formats[0] = user_format;
 						
-						DIAGNOSTICS::SetFormatMessage(user_format, DecToBin, false);
+						Diagnostics::setFormatMessage(user_format, dec_to_bin, false);
 						std::cout << "\n";
-						DIAGNOSTICS::SetFormatMessage(user_format, BinToDec, false);
+						Diagnostics::setFormatMessage(user_format, bin_to_dec, false);
 					}
 
-					else if (type == FRAC_FORMAT) {
+					else if (type == frac_format) {
 
-						SDEC_TO_BIN_formats[0] = user_format;
-						SBIN_TO_DEC_formats[0] = user_format;
+						sdec_to_bin_formats[0] = user_format;
+						sbin_to_dec_formats[0] = user_format;
 						
-						DIAGNOSTICS::SetFormatMessage(user_format, DecToBin, true);
+						Diagnostics::setFormatMessage(user_format, dec_to_bin, true);
 						std::cout << "\n";
-						DIAGNOSTICS::SetFormatMessage(user_format, BinToDec, true);
+						Diagnostics::setFormatMessage(user_format, bin_to_dec, true);
 					}
 
 				}
 
 				else if (converter_mode == set_local) {
 
-					if (conversion_type == DecToBin) {
+					if (conversion_type == dec_to_bin) {
 
-						if (type == INT_FORMAT) {
+						if (type == int_format) {
 
-							SDEC_TO_BIN_formats[0] = user_format;
-							DIAGNOSTICS::SetFormatMessage(user_format, DecToBin, false);
+							sdec_to_bin_formats[0] = user_format;
+							Diagnostics::setFormatMessage(user_format, dec_to_bin, false);
 						}
 
-						else if (type == FRAC_FORMAT) {
+						else if (type == frac_format) {
 
-							SDEC_TO_BIN_formats[1] = user_format;
-							DIAGNOSTICS::SetFormatMessage(user_format, DecToBin, true);
+							sdec_to_bin_formats[1] = user_format;
+							Diagnostics::setFormatMessage(user_format, dec_to_bin, true);
 						}
 					}
 					
 					else {
 
-						if (type == INT_FORMAT) {
+						if (type == int_format) {
 
-							SBIN_TO_DEC_formats[0] = user_format;
-							DIAGNOSTICS::SetFormatMessage(user_format, BinToDec, false);
+							sbin_to_dec_formats[0] = user_format;
+							Diagnostics::setFormatMessage(user_format, bin_to_dec, false);
 						}
 
-						else if (type == FRAC_FORMAT) {
+						else if (type == frac_format) {
 
-							SBIN_TO_DEC_formats[1] = user_format;
-							DIAGNOSTICS::SetFormatMessage(user_format, BinToDec, true);
+							sbin_to_dec_formats[1] = user_format;
+							Diagnostics::setFormatMessage(user_format, bin_to_dec, true);
 						}
 					}
 
@@ -910,31 +862,31 @@ namespace BINARY_CONVERSION {
 
 				if (converter_mode == set_default) {
 
-					SDEC_TO_BIN_formats = default_formats;
-					SBIN_TO_DEC_formats = default_formats;
-					DIAGNOSTICS::SetDefaultMessage(default_formats);
+					sdec_to_bin_formats = default_formats;
+					sbin_to_dec_formats = default_formats;
+					Diagnostics::setDefaultMessage(default_formats);
 
 				}
 
 				else if (converter_mode == show_local) {
 
-					if (conversion_type == DecToBin) {
+					if (conversion_type == dec_to_bin) {
 
-						DIAGNOSTICS::ShowLocal(SDEC_TO_BIN_formats, conversion_type);
+						Diagnostics::showLocal(sdec_to_bin_formats, conversion_type);
 					}
 
 					else {
 
-						DIAGNOSTICS::ShowLocal(SBIN_TO_DEC_formats, conversion_type);
+						Diagnostics::showLocal(sbin_to_dec_formats, conversion_type);
 					}
 					
 				}
 
 				else if (converter_mode == show_global) {
 
-					DIAGNOSTICS::ShowLocal(SDEC_TO_BIN_formats, DecToBin);
+					Diagnostics::showLocal(sdec_to_bin_formats, dec_to_bin);
 					std::cout << '\n';
-					DIAGNOSTICS::ShowLocal(SBIN_TO_DEC_formats, BinToDec);
+					Diagnostics::showLocal(sbin_to_dec_formats, bin_to_dec);
 				}
 			}
 
@@ -944,11 +896,11 @@ namespace BINARY_CONVERSION {
 	}
 
 	//Note! Format converter functions assume number systems are properly set 
-	namespace FORMAT {
+	namespace Format {
 
-		bin_string_parser FormatOutputer(bool conversion_type, BUILT_INS::value input, uint16_t bit_size, std::string_view FORMAT) {
+		BinStringParser formatOutputer(bool conversion_type, BuiltIns::Value input, uint16_t bit_size, std::string_view FORMAT) {
 
-			bin_string_parser output;
+			BinStringParser output;
 
 
 			//Integer-type 
@@ -956,9 +908,9 @@ namespace BINARY_CONVERSION {
 			//UNSIGNED 
 			if (FORMAT == int_formats[0]) {
 
-				if (conversion_type == DecToBin) {
+				if (conversion_type == dec_to_bin) {
 
-					output = FORMAT::INT::Unsigned::DecToRaw(input, bit_size);
+					output = Format::Int::Unsigned::decToRaw(input, bit_size);
 
 					
 					
@@ -966,7 +918,7 @@ namespace BINARY_CONVERSION {
 					
 				else {
 					
-					output = FORMAT::INT::Unsigned::RawToDec(input, bit_size);
+					output = Format::Int::Unsigned::rawToDec(input, bit_size);
 				}
 				
 			}
@@ -974,14 +926,14 @@ namespace BINARY_CONVERSION {
 			//SIGN_MAG
 			else if (FORMAT == int_formats[1]) {
 
-				if (conversion_type == DecToBin) {
+				if (conversion_type == dec_to_bin) {
 
-					output = FORMAT::INT::SignMagnitude::DecToRaw(input, bit_size);
+					output = Format::Int::SignMagnitude::decToRaw(input, bit_size);
 				}
 
 				else {
 
-					output = FORMAT::INT::SignMagnitude::RawToDec(input, bit_size);
+					output = Format::Int::SignMagnitude::rawToDec(input, bit_size);
 				}
 
 				
@@ -990,14 +942,14 @@ namespace BINARY_CONVERSION {
 			//ONES_COMP
 			else if (FORMAT == int_formats[2]) {
 
-				if (conversion_type == DecToBin) {
+				if (conversion_type == dec_to_bin) {
 
-					output = FORMAT::INT::OnesComplement::DecToRaw(input, bit_size);
+					output = Format::Int::OnesComplement::decToRaw(input, bit_size);
 				}
 
 				else {
 
-					output =  FORMAT::INT::OnesComplement::RawToDec(input, bit_size);
+					output =  Format::Int::OnesComplement::rawToDec(input, bit_size);
 				}
 
 				
@@ -1006,16 +958,16 @@ namespace BINARY_CONVERSION {
 			//TWOS_COMP
 			else if (FORMAT == int_formats[3]) {
 
-				if (conversion_type == DecToBin) {
+				if (conversion_type == dec_to_bin) {
 
-					output = FORMAT::INT::TwosComplement::DecToRaw(input, bit_size);
+					output = Format::Int::TwosComplement::decToRaw(input, bit_size);
 
 				}
 
 				
 				else {
 
-					output = FORMAT::INT::TwosComplement::RawToDec(input, bit_size);
+					output = Format::Int::TwosComplement::rawToDec(input, bit_size);
 
 				}
 
@@ -1023,7 +975,7 @@ namespace BINARY_CONVERSION {
 
 			else {
 
-				BUILT_INS::DIAGNOSTICS::ConversionError(static_cast<std::string>(FORMAT));
+				BuiltIns::Diagnostics::conversionError(static_cast<std::string>(FORMAT));
 			}
 
 			return output;
@@ -1035,36 +987,36 @@ namespace BINARY_CONVERSION {
 
 				if (input_format == int_format) {
 
-					return STANDARD_CONVERSION::INT_FORMAT;
+					return StandardConversion::int_format;
 				}
 			}
 
-			for (std::string_view frac_format : FORMAT::frac_formats) {
+			for (std::string_view frac_format : Format::frac_formats) {
 
 				if (input_format == frac_format) {
 
-					return STANDARD_CONVERSION::FRAC_FORMAT;
+					return StandardConversion::frac_format;
 				}
 			}
 
-			return F_INVALID_INP;
+			return BuiltIns::f_invalid_input;
 		}
 
-		std::string FORMAT_CONVERTER(bool conversion_type, std::string input_value, std::string resize_flag, std::string_view FORMAT) {
+		std::string formatConverter(bool conversion_type, std::string input_value, std::string resize_flag, std::string_view FORMAT) {
 			//FDEC_TO_BIN handles two general cases:
 			//If input is unsigned (e.g. -5u), it is fully processed in the converter itself
 			//In any other case, it is converted in the format-specific function
 
-			bin_string_parser output;
+			BinStringParser output;
 
 			
 
 			//resize_flag resolve
-			uint16_t bit_size{ INT::ResizeFlagParser(resize_flag) };
-			if (bit_size == F_INVALID_INP) {
+			uint16_t bit_size{ Int::resizeFlagParser(resize_flag) };
+			if (bit_size == BuiltIns::f_invalid_input) {
 
 				
-				BUILT_INS::DIAGNOSTICS::ConversionError(resize_flag);
+				BuiltIns::Diagnostics::conversionError(resize_flag);
 				return "";
 			}
 			
@@ -1072,11 +1024,11 @@ namespace BINARY_CONVERSION {
 			std::string user_input{ input_value };
 
 			//Suffix handling 
-			if (BUILT_INS::INP_HANDLING::INP_CHECK::IsUnsigned(user_input) == true) {
+			if (BuiltIns::InpHandling::InpCheck::isUnsigned(user_input) == true) {
 
 				
 				FORMAT = int_formats[0];
-				user_input = BUILT_INS::INP_HANDLING::INP_EDIT::RemoveSuffix(user_input);
+				user_input = BuiltIns::InpHandling::InpEdit::removeSuffix(user_input);
 			}
 			
 			//Parameters for the conversion
@@ -1086,23 +1038,23 @@ namespace BINARY_CONVERSION {
 			bool remove_zeros{};
 			
 			
-			if (conversion_type == DecToBin) {
-				max_val = MAX_64DEC_NUM;
-				num_sys = DECIMAL_SYS;
+			if (conversion_type == dec_to_bin) {
+				max_val = BuiltIns::kMaxDec;
+				num_sys = BuiltIns::kDecimalSys;
 				remove_zeros = true;
 			}
 
 			else {
 				
-				max_val = MAX_64BIN_NUM;
-				num_sys = BINARY_SYS;
+				max_val = BuiltIns::kMaxBin;
+				num_sys = BuiltIns::kBinarySys;
 				//Because binary inputs can be Rvalues, we may need both leading and trailing zeros 
 				remove_zeros = false;
 			}
 
 			//Input validation
-			BUILT_INS::value parsed_value{ BUILT_INS::INP_HANDLING::InpValueParser(user_input, num_sys, std::string("-") + max_val, max_val, 16, remove_zeros, remove_zeros, true ) };
-			if (BUILT_INS::DIAGNOSTICS::ErrorHandler(input_value, parsed_value.flag, std::string("-") + max_val, max_val) == true) {
+			BuiltIns::Value parsed_value{ BuiltIns::InpHandling::valueParser(user_input, num_sys, std::string("-") + max_val, max_val, 16, remove_zeros, remove_zeros, true ) };
+			if (BuiltIns::Diagnostics::errorHandler(input_value, parsed_value.flag, std::string("-") + max_val, max_val) == true) {
 				
 				return "";
 
@@ -1111,22 +1063,22 @@ namespace BINARY_CONVERSION {
 			//If we have a fractional like input being processed on integer-compatible formats, we raise a warning
 			if (parsed_value.is_a_frac == true && formatType(FORMAT) == 1) {
 
-				DIAGNOSTICS::PrecisionLossWarning();
+				Diagnostics::precisionLossWarning();
 			}
 
-			output = FormatOutputer(conversion_type, parsed_value, bit_size, FORMAT);
+			output = formatOutputer(conversion_type, parsed_value, bit_size, FORMAT);
 
 			return output.value;
 
 		}
 
-		namespace INT {
+		namespace Int {
 			
 			
 
-			bin_string_parser BitResizer(std::string input, bool account_for_sign_bit, uint16_t bit_size) {
+			BinStringParser bitResizer(std::string input, bool account_for_sign_bit, uint16_t bit_size) {
 
-				bin_string_parser output;
+				BinStringParser output;
 
 				uint16_t biased_bit{};
 
@@ -1138,7 +1090,7 @@ namespace BINARY_CONVERSION {
 
 				if (bit_size == 0) {
 
-					output = AutoResize(std::string("0", biased_bit) + input);
+					output = autoResize(std::string("0", biased_bit) + input);
 
 				}
 
@@ -1147,18 +1099,18 @@ namespace BINARY_CONVERSION {
 					if (input.length() + biased_bit > bit_size) {
 
 					
-						output.flag = F_TRUNCATION;
+						output.flag = f_truncation;
 					}
 					
-					output.value = ResizeTo(input, bit_size ).value;
+					output.value = resizeTo(input, bit_size ).value;
 					
 
 				}
 
 				else {
 
-					output.flag = F_INVALID_INP;
-					output.value = bin_string_parser{}.value;
+					output.flag = BuiltIns::f_invalid_input;
+					output.value = BinStringParser{}.value;
 					return output;
 				}
 
@@ -1166,31 +1118,31 @@ namespace BINARY_CONVERSION {
 				return output;
 			}
 
-			bin_string_parser AutoResize(std::string input) {
+			BinStringParser autoResize(std::string input) {
 
-				bin_string_parser output;
+				BinStringParser output;
 
 
 
 				if (input.length() <= 8) {
 
-					output = ResizeTo(input, 8);
+					output = resizeTo(input, 8);
 				}
 
 				else if (input.length() <= 16) {
 
-					output = ResizeTo(input, 16);
+					output = resizeTo(input, 16);
 				}
 
 				else if (input.length() <= 32) {
 
-					output = ResizeTo(input, 32);
+					output = resizeTo(input, 32);
 				}
 
 				else {
 
 					//Truncation
-					output = ResizeTo(input, 64);
+					output = resizeTo(input, 64);
 				}
 
 
@@ -1198,9 +1150,9 @@ namespace BINARY_CONVERSION {
 				return output;
 			}
 
-			bin_string_parser ResizeTo(std::string input, uint16_t bit_width) {
+			BinStringParser resizeTo(std::string input, uint16_t bit_width) {
 
-				bin_string_parser output;
+				BinStringParser output;
 
 				output.value = input;
 
@@ -1211,7 +1163,7 @@ namespace BINARY_CONVERSION {
 					//Simply cuts off the unnescesarry values
 					output.value = output.value.substr(input.length() - bit_width);
 					//Warning that the value has been wrapped around
-					output.flag = F_TRUNCATION;
+					output.flag = f_truncation;
 				}
 
 				else if (input.length() < bit_width) {
@@ -1223,15 +1175,15 @@ namespace BINARY_CONVERSION {
 				return output;
 			}
 
-			bin_string_parser BinToRaw(BUILT_INS::value input, uint16_t bit_size, std::string FORMAT) {
+			BinStringParser binToRaw(BuiltIns::Value input, uint16_t bit_size, std::string FORMAT) {
 				
-				bin_string_parser output;
+				BinStringParser output;
 
 				output.flag = input.flag;
 				if (output.flag != 0) return output;
 
-				output.value = input.WHOLE_return_val;
-				output.value = BUILT_INS::INP_HANDLING::INP_EDIT::LeadingZeroRemoval(output.value);
+				output.value = input.whole_part;
+				output.value = BuiltIns::InpHandling::InpEdit::leadingZeroRemoval(output.value);
 
 				bool account_for_sign_bit{ true };
 				
@@ -1240,11 +1192,11 @@ namespace BINARY_CONVERSION {
 					account_for_sign_bit = false;
 				}
 
-				output = BitResizer(output.value, account_for_sign_bit, bit_size);
+				output = bitResizer(output.value, account_for_sign_bit, bit_size);
 
 				
 
-				if (output.flag == F_INVALID_INP) {
+				if (output.flag == BuiltIns::f_invalid_input) {
 
 					return output;
 				}
@@ -1266,11 +1218,11 @@ namespace BINARY_CONVERSION {
 								displayed_bit_size = 8;
 							}
 
-							output.value = UTILS::BinaryFlip(output.value);
-							output.value = UTILS::BinAdd(output.value, "1");
-							output.value = ResizeTo(output.value, displayed_bit_size).value;
+							output.value = Utils::binaryFlip(output.value);
+							output.value = Utils::binAdd(output.value, "1");
+							output.value = resizeTo(output.value, displayed_bit_size).value;
 							
-							output.flag = F_WRAP_AROUND;
+							output.flag = f_wrap_around;
 
 
 						}
@@ -1285,7 +1237,7 @@ namespace BINARY_CONVERSION {
 					//ONES_COMP
 					else if (FORMAT == int_formats[2]) {
 
-						output.value = UTILS::BinaryFlip(output.value);
+						output.value = Utils::binaryFlip(output.value);
 					}
 
 					//TWOS_COMP 
@@ -1294,23 +1246,23 @@ namespace BINARY_CONVERSION {
 						//In order to apply the assymetry in Two's Complement, we check if the input equals to the lower bound of Two's complement, if so, we remove the F_TRUNCATION
 						//exponent overflows!
 						
-						uint64_t min_bound{ BINARY_CONVERSION::UTILS::intBinToDec(input.WHOLE_return_val).numerator };
+						uint64_t min_bound{ BinaryConversion::Utils::intBinToDec(input.whole_part).numerator };
 						
-						if (min_bound == BUILT_INS::Power(2, 7) || min_bound == BUILT_INS::Power(2, 15) || min_bound == BUILT_INS::Power(2, 31) || min_bound == BUILT_INS::Power(2, 63)) {
+						if (min_bound == BuiltIns::power(2, 7) || min_bound == BuiltIns::power(2, 15) || min_bound == BuiltIns::power(2, 31) || min_bound == BuiltIns::power(2, 63)) {
 							
 							//Removing all of the leading zeros added by automatic resizing
 							//Because the lower bound of Two's Complement is a power of two, the leading bit will always be 1, hence 
 							//it is safe to remove all of the leading zeros, as the bit size will be kept
 							if (bit_size == 0) {
 
-								output.value = BUILT_INS::INP_HANDLING::INP_EDIT::LeadingZeroRemoval(output.value);
+								output.value = BuiltIns::InpHandling::InpEdit::leadingZeroRemoval(output.value);
 							}
 							
 							output.flag = 0;
 						}
 
-						output.value = UTILS::BinaryFlip(output.value);
-						std::string appended_val{ UTILS::BinAdd(output.value, "1") };
+						output.value = Utils::binaryFlip(output.value);
+						std::string appended_val{ Utils::binAdd(output.value, "1") };
 
 						if (output.value.length() != appended_val.length()) {
 
@@ -1333,37 +1285,36 @@ namespace BINARY_CONVERSION {
 
 			}
 
-
-			uint16_t ResizeFlagParser(std::string flag) {
+			uint16_t resizeFlagParser(std::string flag) {
 
 				if (flag.length() == 0) {
 
 					return 0;
 				}
 
-				else if (flag == FORMAT::INT::resize_flags[0]) {
+				else if (flag == Format::Int::resize_flags[0]) {
 
 					return 8;
 				}
 
-				else if (flag == FORMAT::INT::resize_flags[1]) {
+				else if (flag == Format::Int::resize_flags[1]) {
 
 					return 16;
 				}
 
-				else if (flag == FORMAT::INT::resize_flags[2]) {
+				else if (flag == Format::Int::resize_flags[2]) {
 
 					return 32;
 				}
 
-				else if (flag == FORMAT::INT::resize_flags[3]) {
+				else if (flag == Format::Int::resize_flags[3]) {
 
 					return 64;
 				}
 
 
 				//Zero is reserved for the error state 
-				return F_INVALID_INP;
+				return BuiltIns::f_invalid_input;
 			}
 
 			
@@ -1379,7 +1330,7 @@ namespace BINARY_CONVERSION {
 						return 0;
 					}
 
-					uint64_t max_int{ BUILT_INS::Power(2,bit_size) };
+					uint64_t max_int{ BuiltIns::power(2,bit_size) };
 
 					//Hardware level overflow (prevents division by zero in the last return statement, when max_int  itself wraps around)
 					if (bit_size == 64) {
@@ -1397,14 +1348,14 @@ namespace BINARY_CONVERSION {
 					return (max_int - (negative_input + max_int) % max_int) % max_int;
 				}
 
-				bin_string_parser DecToRaw(BUILT_INS::value input, uint16_t bit_size, bool display_IR) {
+				BinStringParser decToRaw(BuiltIns::Value input, uint16_t bit_size, bool display_IR) {
 
-					bin_string_parser output;
+					BinStringParser output;
 
 					output.flag = input.flag; 
 					if (output.flag != 0) return output;
 
-					uint64_t integer_value{ BUILT_INS::INP_HANDLING::ToDec(input.WHOLE_return_val).numerator };
+					uint64_t integer_value{ BuiltIns::InpHandling::toDec(input.whole_part).numerator };
 					
 					//-0 is meaningless in UNSIGNED, and because we don't want to envoke Wrap around message, we
 					//change it to positive 0.
@@ -1413,105 +1364,105 @@ namespace BINARY_CONVERSION {
 						input.sign = 0;
 					}
 					
-					input.WHOLE_return_val = UTILS::intDecToBin(integer_value);
+					input.whole_part = Utils::intDecToBin(integer_value);
 
-					output = BinToRaw(input, bit_size, static_cast<std::string>(int_formats[0]));
+					output = binToRaw(input, bit_size, static_cast<std::string>(int_formats[0]));
 
-					if (output.flag == F_WRAP_AROUND) {
+					if (output.flag == f_wrap_around) {
 
 						if (bit_size == 0) {
 
-							DIAGNOSTICS::WrapAroundWarning(8);
+							Diagnostics::wrapAroundWarning(8);
 						}
 
 						else {
 
-							DIAGNOSTICS::WrapAroundWarning(bit_size);
+							Diagnostics::wrapAroundWarning(bit_size);
 
 						}
 						
-						output.intermediate_value =  std::to_string(UTILS::intBinToDec(output.value).numerator);
+						output.intermediate_value =  std::to_string(Utils::intBinToDec(output.value).numerator);
 						
 					}
 
-					if (output.flag == F_TRUNCATION) {
+					if (output.flag == f_truncation) {
 
 						if (bit_size == 0) {
 
-							DIAGNOSTICS::TruncationWarning(64);
+							Diagnostics::truncationWarning(64);
 
 						}
 
 						else {
 
-							DIAGNOSTICS::TruncationWarning(bit_size);
+							Diagnostics::truncationWarning(bit_size);
 
 						}
 						
-						output.intermediate_value = std::to_string(UTILS::intBinToDec(output.value).numerator);
+						output.intermediate_value = std::to_string(Utils::intBinToDec(output.value).numerator);
 						
 					}
 
 					if (display_IR && output.intermediate_value.length() != 0) {
-						DIAGNOSTICS::IntermediateValue(output.intermediate_value);
+						Diagnostics::intermediateValue(output.intermediate_value);
 					}
 
 					return output;
 				}
 				
-				bin_string_parser RawToDec(BUILT_INS::value input, uint16_t bit_size) {
+				BinStringParser rawToDec(BuiltIns::Value input, uint16_t bit_size) {
 
-					bin_string_parser output;
+					BinStringParser output;
 
 					output.flag = input.flag;
 					if (output.flag != 0) return output;
 
 					//-0 is meaningless for unsigneds
-					if (BUILT_INS::INP_HANDLING::INP_EDIT::LeadingZeroRemoval(input.WHOLE_return_val) == "0" && input.sign == 1) {
+					if (BuiltIns::InpHandling::InpEdit::leadingZeroRemoval(input.whole_part) == "0" && input.sign == 1) {
 
 						input.sign = 0;
 					}
 
 					//MValue handling
-					if (input.has_explicit_plus == true || input.sign == 1 || UTILS::isRawBin(input.WHOLE_return_val, bit_size_presets) == false) {
+					if (input.has_explicit_plus == true || input.sign == 1 || Utils::isRawBin(input.whole_part, bit_size_presets) == false) {
 
-						input.WHOLE_return_val = BUILT_INS::INP_HANDLING::INP_EDIT::LeadingZeroRemoval(input.WHOLE_return_val);
-						input.WHOLE_return_val = std::to_string(UTILS::intBinToDec(input.WHOLE_return_val).numerator);
+						input.whole_part = BuiltIns::InpHandling::InpEdit::leadingZeroRemoval(input.whole_part);
+						input.whole_part = std::to_string(Utils::intBinToDec(input.whole_part).numerator);
 						
-						output = DecToRaw(input, bit_size, false);
+						output = decToRaw(input, bit_size, false);
 						
-						DIAGNOSTICS::IntermediateValue(output.value);
+						Diagnostics::intermediateValue(output.value);
 					}
 					
 					//Rvalue handling
 					else {
 						
-						output.value = input.WHOLE_return_val;
+						output.value = input.whole_part;
 
 						//IR will be output in any way because we modified our initial rValue with the resize flag
 						if (bit_size != output.value.length() && bit_size != 0) {
 
-							output = BitResizer(output.value, false, bit_size);
+							output = bitResizer(output.value, false, bit_size);
 
-							if (output.flag == F_TRUNCATION) {
+							if (output.flag == f_truncation) {
 
 
 								if (bit_size == 0) {
 
-									DIAGNOSTICS::TruncationWarning(64);
-									DIAGNOSTICS::IntermediateValue(output.value);
+									Diagnostics::truncationWarning(64);
+									Diagnostics::intermediateValue(output.value);
 								}
 
 								else {
 
-									DIAGNOSTICS::TruncationWarning(bit_size);
+									Diagnostics::truncationWarning(bit_size);
 								}
 							}
-							DIAGNOSTICS::IntermediateValue(output.value);
+							Diagnostics::intermediateValue(output.value);
 						}
 					}
 
-					output.value = std::to_string(UTILS::intBinToDec(output.value).numerator);
+					output.value = std::to_string(Utils::intBinToDec(output.value).numerator);
 
 					return output;
 				}
@@ -1520,34 +1471,34 @@ namespace BINARY_CONVERSION {
 
 			namespace SignMagnitude {
 				
-				bin_string_parser DecToRaw(BUILT_INS::value input, uint16_t bit_size, bool display_IR) {
+				BinStringParser decToRaw(BuiltIns::Value input, uint16_t bit_size, bool display_IR) {
 					
-					bin_string_parser output;
+					BinStringParser output;
 
 					output.flag = input.flag;
 					if (output.flag != 0) return output;
 
-					uint64_t integer_value{ BUILT_INS::INP_HANDLING::ToDec(input.WHOLE_return_val).numerator };
-					input.WHOLE_return_val = UTILS::intDecToBin(integer_value);
+					uint64_t integer_value{ BuiltIns::InpHandling::toDec(input.whole_part).numerator };
+					input.whole_part = Utils::intDecToBin(integer_value);
 
-					output = BinToRaw(input, bit_size, static_cast<std::string>(int_formats[1]));
+					output = binToRaw(input, bit_size, static_cast<std::string>(int_formats[1]));
 
-					if (output.flag == F_TRUNCATION) {
+					if (output.flag == f_truncation) {
 
 						if (bit_size == 0) {
 
-							DIAGNOSTICS::TruncationWarning(64);
+							Diagnostics::truncationWarning(64);
 
 						}
 
 						else {
 
-							DIAGNOSTICS::TruncationWarning(bit_size);
+							Diagnostics::truncationWarning(bit_size);
 
 						}
 
 						//Removing the sign bit, so it won't mess up with calculations for the absolute value 
-						output.intermediate_value =  std::to_string(UTILS::intBinToDec(output.value.substr(1)).numerator);
+						output.intermediate_value =  std::to_string(Utils::intBinToDec(output.value.substr(1)).numerator);
 						
 						if (output.value[0] == '1') {
 							
@@ -1559,35 +1510,35 @@ namespace BINARY_CONVERSION {
 					}
 
 					if (display_IR && output.intermediate_value.length() != 0) {
-						DIAGNOSTICS::IntermediateValue(output.intermediate_value);
+						Diagnostics::intermediateValue(output.intermediate_value);
 					}
 
 					return output;
 				}	
 
-				bin_string_parser RawToDec(BUILT_INS::value input, uint16_t bit_size) {
+				BinStringParser rawToDec(BuiltIns::Value input, uint16_t bit_size) {
 
-					bin_string_parser output;
+					BinStringParser output;
 
 					output.flag = input.flag;
 					if (output.flag != 0) return output;
 
 
 					//MValue handling
-					if (input.has_explicit_plus == true || input.sign == 1 || UTILS::isRawBin(input.WHOLE_return_val, bit_size_presets) == false) {
+					if (input.has_explicit_plus == true || input.sign == 1 || Utils::isRawBin(input.whole_part, bit_size_presets) == false) {
 
-						input.WHOLE_return_val = BUILT_INS::INP_HANDLING::INP_EDIT::LeadingZeroRemoval(input.WHOLE_return_val);
-						input.WHOLE_return_val = std::to_string(UTILS::intBinToDec(input.WHOLE_return_val).numerator);
+						input.whole_part = BuiltIns::InpHandling::InpEdit::leadingZeroRemoval(input.whole_part);
+						input.whole_part = std::to_string(Utils::intBinToDec(input.whole_part).numerator);
 
-						output = DecToRaw(input, bit_size, false);
+						output = decToRaw(input, bit_size, false);
 
-						DIAGNOSTICS::IntermediateValue(output.value);
+						Diagnostics::intermediateValue(output.value);
 					}
 
 					//Rvalue handling
 					else {
 
-						output.value = input.WHOLE_return_val;
+						output.value = input.whole_part;
 
 						if (bit_size != 0 && bit_size != output.value.length()) {
 
@@ -1596,33 +1547,33 @@ namespace BINARY_CONVERSION {
 
 							
 								output.value[0] = '0';
-								output = BitResizer(output.value, false, bit_size);
+								output = bitResizer(output.value, false, bit_size);
 								output.value[0] = '1';
 
 							}
 
 							else {
 
-								output = BitResizer(output.value, false, bit_size);
+								output = bitResizer(output.value, false, bit_size);
 
-								if (output.flag == F_TRUNCATION) {
+								if (output.flag == f_truncation) {
 
 
 									if (bit_size == 0) {
 
-										DIAGNOSTICS::TruncationWarning(64);
-										DIAGNOSTICS::IntermediateValue(output.value);
+										Diagnostics::truncationWarning(64);
+										Diagnostics::intermediateValue(output.value);
 									}
 
 									else {
 
-										DIAGNOSTICS::TruncationWarning(bit_size);
+										Diagnostics::truncationWarning(bit_size);
 									}
 								}
 								
 							}
 
-							DIAGNOSTICS::IntermediateValue(output.value);
+							Diagnostics::intermediateValue(output.value);
 						}
 					}
 
@@ -1633,7 +1584,7 @@ namespace BINARY_CONVERSION {
 						output.value = output.value.substr(1);
 					}
 
-					output.value = sign + std::to_string(UTILS::intBinToDec(output.value).numerator);
+					output.value = sign + std::to_string(Utils::intBinToDec(output.value).numerator);
 
 					return output;
 				}
@@ -1641,29 +1592,29 @@ namespace BINARY_CONVERSION {
 			}
 			namespace OnesComplement {
 
-				bin_string_parser DecToRaw(BUILT_INS::value input, uint16_t bit_size, bool display_IR) {
+				BinStringParser decToRaw(BuiltIns::Value input, uint16_t bit_size, bool display_IR) {
 
-					bin_string_parser output;
+					BinStringParser output;
 
 					output.flag = input.flag;
 					if (output.flag != 0) return output;
 
-					uint64_t integer_value{ BUILT_INS::INP_HANDLING::ToDec(input.WHOLE_return_val).numerator };
-					input.WHOLE_return_val = UTILS::intDecToBin(integer_value);
+					uint64_t integer_value{ BuiltIns::InpHandling::toDec(input.whole_part).numerator };
+					input.whole_part = Utils::intDecToBin(integer_value);
 
-					output = BinToRaw(input, bit_size, static_cast<std::string>(int_formats[2]));
+					output = binToRaw(input, bit_size, static_cast<std::string>(int_formats[2]));
 
-					if (output.flag == F_TRUNCATION) {
+					if (output.flag == f_truncation) {
 
 						if (bit_size == 0) {
 
-							DIAGNOSTICS::TruncationWarning(64);
+							Diagnostics::truncationWarning(64);
 
 						}
 
 						else {
 
-							DIAGNOSTICS::TruncationWarning(bit_size);
+							Diagnostics::truncationWarning(bit_size);
 
 						}
 
@@ -1672,8 +1623,8 @@ namespace BINARY_CONVERSION {
 						
 						if (output.intermediate_value[0] == '1') {
 							
-							output.intermediate_value = UTILS::BinaryFlip(output.intermediate_value);
-							output.intermediate_value = std::to_string(UTILS::intBinToDec(output.intermediate_value).numerator);
+							output.intermediate_value = Utils::binaryFlip(output.intermediate_value);
+							output.intermediate_value = std::to_string(Utils::intBinToDec(output.intermediate_value).numerator);
 							output.intermediate_value.insert(0, 1, '-');
 							
 							
@@ -1681,7 +1632,7 @@ namespace BINARY_CONVERSION {
 						}
 
 						else {
-							output.intermediate_value = std::to_string(UTILS::intBinToDec(output.intermediate_value).numerator);
+							output.intermediate_value = std::to_string(Utils::intBinToDec(output.intermediate_value).numerator);
 
 						}
 
@@ -1690,7 +1641,7 @@ namespace BINARY_CONVERSION {
 					}
 
 					if (display_IR && output.intermediate_value.length() != 0) {
-						DIAGNOSTICS::IntermediateValue(output.intermediate_value);
+						Diagnostics::intermediateValue(output.intermediate_value);
 					}
 
 					return output;
@@ -1698,29 +1649,29 @@ namespace BINARY_CONVERSION {
 
 				}
 
-				bin_string_parser RawToDec(BUILT_INS::value input, uint16_t bit_size) {
+				BinStringParser rawToDec(BuiltIns::Value input, uint16_t bit_size) {
 
-					bin_string_parser output;
+					BinStringParser output;
 
 					output.flag = input.flag;
 					if (output.flag != 0) return output;
 
 
 					//MValue handling
-					if (input.has_explicit_plus == true || input.sign == 1 || UTILS::isRawBin(input.WHOLE_return_val, bit_size_presets) == false) {
+					if (input.has_explicit_plus == true || input.sign == 1 || Utils::isRawBin(input.whole_part, bit_size_presets) == false) {
 
-						input.WHOLE_return_val = BUILT_INS::INP_HANDLING::INP_EDIT::LeadingZeroRemoval(input.WHOLE_return_val);
-						input.WHOLE_return_val = std::to_string(UTILS::intBinToDec(input.WHOLE_return_val).numerator);
+						input.whole_part = BuiltIns::InpHandling::InpEdit::leadingZeroRemoval(input.whole_part);
+						input.whole_part = std::to_string(Utils::intBinToDec(input.whole_part).numerator);
 
-						output = DecToRaw(input, bit_size, false);
+						output = decToRaw(input, bit_size, false);
 
-						DIAGNOSTICS::IntermediateValue(output.value);
+						Diagnostics::intermediateValue(output.value);
 					}
 
 					//Rvalue handling
 					else {
 
-						output.value = input.WHOLE_return_val;
+						output.value = input.whole_part;
 
 						if (bit_size != 0 && bit_size != output.value.length()) {
 
@@ -1735,26 +1686,26 @@ namespace BINARY_CONVERSION {
 
 							else {
 
-								output = BitResizer(output.value, false, bit_size);
+								output = bitResizer(output.value, false, bit_size);
 
-								if (output.flag == F_TRUNCATION) {
+								if (output.flag == f_truncation) {
 
 
 									if (bit_size == 0) {
 
-										DIAGNOSTICS::TruncationWarning(64);
-										DIAGNOSTICS::IntermediateValue(output.value);
+										Diagnostics::truncationWarning(64);
+										Diagnostics::intermediateValue(output.value);
 									}
 
 									else {
 
-										DIAGNOSTICS::TruncationWarning(bit_size);
+										Diagnostics::truncationWarning(bit_size);
 									}
 								}
 
 							}
 
-							DIAGNOSTICS::IntermediateValue(output.value);
+							Diagnostics::intermediateValue(output.value);
 						}
 					}
 
@@ -1762,10 +1713,10 @@ namespace BINARY_CONVERSION {
 					if (output.value[0] == '1') {
 
 						sign = "-";
-						output.value = UTILS::BinaryFlip(output.value);
+						output.value = Utils::binaryFlip(output.value);
 					}
 
-					output.value = sign + std::to_string(UTILS::intBinToDec(output.value).numerator);
+					output.value = sign + std::to_string(Utils::intBinToDec(output.value).numerator);
 
 					return output;
 				}
@@ -1773,40 +1724,40 @@ namespace BINARY_CONVERSION {
 			}
 			namespace TwosComplement {
 
-				bin_string_parser DecToRaw(BUILT_INS::value input, uint16_t bit_size, bool display_IR) {
+				BinStringParser decToRaw(BuiltIns::Value input, uint16_t bit_size, bool display_IR) {
 
-					bin_string_parser output;
+					BinStringParser output;
 
 					output.flag = input.flag;
 					if (output.flag != 0) return output;
 
-					uint64_t integer_value{ BUILT_INS::INP_HANDLING::ToDec(input.WHOLE_return_val).numerator };
-					input.WHOLE_return_val = UTILS::intDecToBin(integer_value);
+					uint64_t integer_value{ BuiltIns::InpHandling::toDec(input.whole_part).numerator };
+					input.whole_part = Utils::intDecToBin(integer_value);
 
-					output = BinToRaw(input, bit_size, static_cast<std::string>(int_formats[3]));
+					output = binToRaw(input, bit_size, static_cast<std::string>(int_formats[3]));
 
-					if (output.flag == F_TRUNCATION) {
+					if (output.flag == f_truncation) {
 
 						if (bit_size == 0) {
 
-							DIAGNOSTICS::TruncationWarning(64);
+							Diagnostics::truncationWarning(64);
 
 						}
 
 						else {
 
-							DIAGNOSTICS::TruncationWarning(bit_size);
+							Diagnostics::truncationWarning(bit_size);
 
 						}
 
 						output.intermediate_value =  output.value;
 
 						//-0 is ignored because TWOS_COMP doesnt have signed zeros
-						if (output.intermediate_value[0] == '1' && BUILT_INS::INP_HANDLING::INP_EDIT::LeadingZeroRemoval(output.value) != "0") {
+						if (output.intermediate_value[0] == '1' && BuiltIns::InpHandling::InpEdit::leadingZeroRemoval(output.value) != "0") {
 
 							
-							output.intermediate_value = UTILS::BinaryFlip(output.intermediate_value);
-							output.intermediate_value = std::to_string(UTILS::intBinToDec(output.intermediate_value).numerator + 1);
+							output.intermediate_value = Utils::binaryFlip(output.intermediate_value);
+							output.intermediate_value = std::to_string(Utils::intBinToDec(output.intermediate_value).numerator + 1);
 							output.intermediate_value.insert(0, 1, '-');
 							
 						}
@@ -1814,7 +1765,7 @@ namespace BINARY_CONVERSION {
 						else {
 
 							//Here the number is positive, hence Two's Complement transformation is irrelevant
-							output.intermediate_value = std::to_string(UTILS::intBinToDec(output.intermediate_value).numerator);
+							output.intermediate_value = std::to_string(Utils::intBinToDec(output.intermediate_value).numerator);
 						}
 						
 					
@@ -1823,7 +1774,7 @@ namespace BINARY_CONVERSION {
 					if (display_IR && output.intermediate_value.length() != 0) {
 						
 						
-						DIAGNOSTICS::IntermediateValue(output.intermediate_value);
+						Diagnostics::intermediateValue(output.intermediate_value);
 					}
 
 					return output;
@@ -1831,28 +1782,28 @@ namespace BINARY_CONVERSION {
 
 				}
 
-				bin_string_parser RawToDec(BUILT_INS::value input, uint16_t bit_size) {
+				BinStringParser rawToDec(BuiltIns::Value input, uint16_t bit_size) {
 
-					bin_string_parser output;
+					BinStringParser output;
 
 					output.flag = input.flag;
 					if (output.flag != 0) return output;
 
 
 					//MValue handling
-					if (input.has_explicit_plus == true || input.sign == 1 || UTILS::isRawBin(input.WHOLE_return_val, bit_size_presets) == false) {
+					if (input.has_explicit_plus == true || input.sign == 1 || Utils::isRawBin(input.whole_part, bit_size_presets) == false) {
 
-						input.WHOLE_return_val = BUILT_INS::INP_HANDLING::INP_EDIT::LeadingZeroRemoval(input.WHOLE_return_val);
-						input.WHOLE_return_val = std::to_string(UTILS::intBinToDec(input.WHOLE_return_val).numerator);
+						input.whole_part = BuiltIns::InpHandling::InpEdit::leadingZeroRemoval(input.whole_part);
+						input.whole_part = std::to_string(Utils::intBinToDec(input.whole_part).numerator);
 
-						output = DecToRaw(input, bit_size, false);
-						DIAGNOSTICS::IntermediateValue(output.value);
+						output = decToRaw(input, bit_size, false);
+						Diagnostics::intermediateValue(output.value);
 					}
 
 					//Rvalue handling
 					else {
 
-						output.value = input.WHOLE_return_val;
+						output.value = input.whole_part;
 
 						if (bit_size != 0 && bit_size != output.value.length()) {
 
@@ -1866,26 +1817,26 @@ namespace BINARY_CONVERSION {
 
 							else {
 
-								output = BitResizer(output.value, false, bit_size);
+								output = bitResizer(output.value, false, bit_size);
 
-								if (output.flag == F_TRUNCATION) {
+								if (output.flag == f_truncation) {
 
 
 									if (bit_size == 0) {
 
-										DIAGNOSTICS::TruncationWarning(64);
-										DIAGNOSTICS::IntermediateValue(output.value);
+										Diagnostics::truncationWarning(64);
+										Diagnostics::intermediateValue(output.value);
 									}
 
 									else {
 
-										DIAGNOSTICS::TruncationWarning(bit_size);
+										Diagnostics::truncationWarning(bit_size);
 									}
 								}
 
 							}
 
-							DIAGNOSTICS::IntermediateValue(output.value);
+							Diagnostics::intermediateValue(output.value);
 						}
 					}
 
@@ -1893,12 +1844,12 @@ namespace BINARY_CONVERSION {
 					if (output.value[0] == '1') {
 
 						sign = "-";
-						output.value = UTILS::BinaryFlip(output.value);
-						output.value = UTILS::BinAdd(output.value, "1");
+						output.value = Utils::binaryFlip(output.value);
+						output.value = Utils::binAdd(output.value, "1");
 						
 					}
 
-					output.value = sign + std::to_string(UTILS::intBinToDec(output.value).numerator);
+					output.value = sign + std::to_string(Utils::intBinToDec(output.value).numerator);
 
 					return output;
 				

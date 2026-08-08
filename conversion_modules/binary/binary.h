@@ -1,4 +1,5 @@
-#ifndef BINARY_10_29_2025
+#pragma once
+
 #define BINARY_10_29_2025
 
 #include <iostream>
@@ -6,17 +7,19 @@
 #include <cstdint>
 #include <vector>
 #include <string_view>
+#include <array>
 
 #include "built_ins.h"
 
-//If the number can't fit into the raw binary representation of 32, 16, or 8 bits, then this flag is raised. 
-//Note! User still can't input numbers greater than 64bit unsigned integer
-#define F_TRUNCATION 50
-#define F_WRAP_AROUND 51
 
-#define DecToBin 0
-#define BinToDec 1
-namespace BINARY_CONVERSION {
+
+namespace BinaryConversion {
+
+	constexpr inline uint16_t f_truncation{ 50 };
+	constexpr inline uint16_t f_wrap_around{ 51 };
+
+	constexpr inline bool dec_to_bin{ 0 };
+	constexpr inline bool bin_to_dec{ 1 };
 
 	//Standard formats: 
 	//INT formats are ones that work with integer like inputs, FRACs only support fractions. Using an int 
@@ -26,14 +29,14 @@ namespace BINARY_CONVERSION {
 	const inline std::vector<std::string_view> conversion_commmands{ "DEC_TO_BIN", "BIN_TO_DEC", "SDEC_TO_BIN", "SBIN_TO_DEC" };
 
 	//Struct used for handling binary strings (especially useful in namespace FORMAT)
-	struct bin_string_parser {
+	struct BinStringParser {
 
 		std::string value{};
 		std::string intermediate_value{};
 		uint16_t flag{};
 	};
 
-	namespace UTILS {
+	namespace Utils {
 		
 		
 		//Converts the absolute value of whole part of a number (e.g. -54.3 =>  54 ) to a mathematically accurate binary representation
@@ -43,20 +46,20 @@ namespace BINARY_CONVERSION {
 		std::string fracDecToBin(uint64_t numerator, uint64_t denominator, uint16_t precision);
 
 		//Converts the absolute value of whole part of a number (e.g. -0011101.010101 => 0011101) to a mathematically accurate deciaml representation
-		BUILT_INS::int_parser intBinToDec(std::string integer_part);
+		BuiltIns::IntParser intBinToDec(std::string integer_part);
 		
 		//This function converts binary input that starts from a given digit place to a proper decimal representation
-		BUILT_INS::int_parser fracBinToDec(std::string fractional_part);
+		BuiltIns::IntParser fracBinToDec(std::string fractional_part);
 
 		//Converts the absolute value of fractional part of a number (e.g. -0011101.010101 => 010101) to a mathematically accurate decimal representation (NOTE! Does't support ... e.g. 0.10101011010... will cause an error)
 		//This function utilizes fractionCalculator() in order to calculate periodic digits
-		BUILT_INS::int_parser fracBinToDecPeriod(std::string digits_in_period, uint64_t start_index);
+		BuiltIns::IntParser fracBinToDecPeriod(std::string digits_in_period, uint64_t start_index);
 			
 		//Flips binary digits (0 -> 1, 1 -> 0)
-		std::string BinaryFlip(std::string input);
+		std::string binaryFlip(std::string input);
 		
 		//Adds two absolute binary inputs
-		std::string BinAdd(std::string operand1, std::string operand2);
+		std::string binAdd(std::string operand1, std::string operand2);
 
 		//Returns true if input is raw binary, otherwise returns false
 		bool isRawBin(std::string binary_input, std::vector<uint16_t> allowed_bit_size);
@@ -64,24 +67,24 @@ namespace BINARY_CONVERSION {
 		bool isAFlag(std::string input, std::vector<std::string_view> allowed_flags);
 	}
 	
-	namespace DIAGNOSTICS {
+	namespace Diagnostics {
 
-		void IntermediateValue(std::string value);
+		void intermediateValue(std::string value);
 
-		void WrapAroundWarning(uint16_t bit_size);
+		void wrapAroundWarning(uint16_t bit_size);
 
-		void TruncationWarning(uint16_t bit_size);
+		void truncationWarning(uint16_t bit_size);
 
-		void PrecisionLossWarning();
+		void precisionLossWarning();
 
-		void SetFormatMessage(std::string FORMAT, bool conversion_type, bool is_a_fraction);
+		void setFormatMessage(std::string FORMAT, bool conversion_type, bool is_a_fraction);
 
-		void SetDefaultMessage(std::vector<std::string> default_formats);
+		void setDefaultMessage(std::vector<std::string> default_formats);
 		
-		void ShowLocal(std::vector<std::string> formats, bool conversion_type);
+		void showLocal(std::vector<std::string> formats, bool conversion_type);
 	}
 
-	namespace DEFAULT_CONVERSION{
+	namespace DefaultConversion{
 		/*This is mathematically accurate conversion, where sign is preserved as a separate 
 		character (e.g. '+', '-'), number representation is adaptive until the limit value is reached,
 		if a rational number has an inf sequence, this sequence will be placed in proper period notation 
@@ -90,12 +93,12 @@ namespace BINARY_CONVERSION {
 		(e.g. pi = 11.0010010000111111011...), also trailing zeros for fractions and leading zeros for integers will be 
 		automatically ignored.
 		*/
-		std::string DEC_TO_BIN(std::vector<std::string>& input_vector);
-		std::string BIN_TO_DEC(std::vector<std::string>& input_vector);
+		std::string decToBin(std::vector<std::string>& input_vector);
+		std::string binToDec(std::vector<std::string>& input_vector);
 
 	}
 
-	namespace STANDARD_CONVERSION {
+	namespace StandardConversion {
 		/*This is hardware accurate conversion, where sign is preserved  based on the format, 
 		the size is specified via the proper flag (e.g. --resize_to_16 or --resize_to_double)
 		Default formats are TWOS_COMP for integers and IEEE754_BINARY for fractions.
@@ -122,8 +125,8 @@ namespace BINARY_CONVERSION {
 		const inline int value_mode{ 15 };
 
 
-		const inline int INT_FORMAT{ 20 }; //All formats that can only be used on integer inputs
-		const inline int FRAC_FORMAT{ 21 }; //All formats that are primarly used for fractional values
+		const inline int int_format{ 20 }; //All formats that can only be used on integer inputs
+		const inline int frac_format{ 21 }; //All formats that are primarly used for fractional values
 
 
 	
@@ -135,55 +138,54 @@ namespace BINARY_CONVERSION {
 		//First element is for INT type formats, second for FRAC type
 		//default_formats is of type std::string and not std::string_view because it works mostly with local variables
 		inline std::vector<std::string> default_formats{ static_cast<std::string>(int_formats[3]), ""};
-		inline std::vector<std::string> SDEC_TO_BIN_formats{ default_formats };
-		inline std::vector<std::string> SBIN_TO_DEC_formats{ default_formats };
+		inline std::vector<std::string> sdec_to_bin_formats{ default_formats };
+		inline std::vector<std::string> sbin_to_dec_formats{ default_formats };
 
-		std::string STANDARD_CONVERTER(std::vector<std::string> &input, bool conversion_type);
+		std::string standardConverter(std::vector<std::string> &input, bool conversion_type);
 		
 	}
 
-	namespace FORMAT {
+	namespace Format {
 
 		/*This namespace has all format-related functions includin converters, type deducers, etc.
 
 		*/
 		
 		//Specific Format-calling function
-		bin_string_parser FormatOutputer(bool conversion_type, BUILT_INS::value input, uint16_t bit_size, std::string_view FORMAT);
+		BinStringParser formatOutputer(bool conversion_type, BuiltIns::Value input, uint16_t bit_size, std::string_view FORMAT);
 		
 		
 		//Deduces the type of the input_format.  1 -> INT format, 2 -> FRAC format, 0 -> Error state
 		uint16_t formatType(std::string_view input_format);
 
 		
-		std::string FORMAT_CONVERTER(bool conversion_type, std::string integer_value, std::string resize_flag, std::string_view FORMAT);
+		std::string formatConverter(bool conversion_type, std::string integer_value, std::string resize_flag, std::string_view FORMAT);
 		
 		const inline std::vector<std::string_view> frac_formats{};
 
 	
 
 		
-		namespace INT {
+		namespace Int {
 
 			const inline std::vector<uint16_t> bit_size_presets{ 8, 16, 32, 64 };
-
-			const inline std::vector<std::string_view> resize_flags{ "--resize_to_8", "--resize_to_16", "--resize_to_32", "--resize_to_64" };
+			const inline std::vector<std::string_view> resize_flags { "--resize_to_8", "--resize_to_16", "--resize_to_32", "--resize_to_64" };
 
 			//Fully Resolves bit resizeding, providing appropriate flags
-			bin_string_parser BitResizer(std::string input, bool account_for_sign_bit, uint16_t bit_size);
+			BinStringParser bitResizer(std::string input, bool account_for_sign_bit, uint16_t bit_size);
 
 			//resizes a binary string to the least compatible length
-			bin_string_parser AutoResize(std::string input);
+			BinStringParser autoResize(std::string input);
 
 			//resizes a binary string to the manually selected length
-			bin_string_parser ResizeTo(std::string input, uint16_t bit_width);
+			BinStringParser resizeTo(std::string input, uint16_t bit_width);
 
 			//Converts a binary mvalue into rvalue
-			bin_string_parser BinToRaw(BUILT_INS::value input, uint16_t bit_size, std::string FORMAT);
+			BinStringParser binToRaw(BuiltIns::Value input, uint16_t bit_size, std::string FORMAT);
 
 
 			//Returns the bit size value if the proper flag is provided, otherwise returns F_OPERAND_INVALID_INP, as an error state
-			uint16_t ResizeFlagParser(std::string flag);
+			uint16_t resizeFlagParser(std::string flag);
 
 			
 			namespace Unsigned {
@@ -191,33 +193,33 @@ namespace BINARY_CONVERSION {
 				//Mimics the wrap-around logic. Note! funciton parameter is the absolute value of the negative input.
 				uint64_t wrapAround(uint64_t negative_input, uint16_t bit_size);
 
-				bin_string_parser DecToRaw(BUILT_INS::value input, uint16_t resize_flag, bool display_IR = true);
+				BinStringParser decToRaw(BuiltIns::Value input, uint16_t resize_flag, bool display_IR = true);
 				
-				bin_string_parser RawToDec(BUILT_INS::value input, uint16_t bit_size);
+				BinStringParser rawToDec(BuiltIns::Value input, uint16_t bit_size);
 
 			}
 
 			namespace SignMagnitude {
 
-				bin_string_parser DecToRaw(BUILT_INS::value input, uint16_t resize_flag, bool display_IR = true);
+				BinStringParser decToRaw(BuiltIns::Value input, uint16_t resize_flag, bool display_IR = true);
 				
-				bin_string_parser RawToDec(BUILT_INS::value input, uint16_t bit_size);
+				BinStringParser rawToDec(BuiltIns::Value input, uint16_t bit_size);
 
 			}
 
 			namespace OnesComplement {
 
-				bin_string_parser DecToRaw(BUILT_INS::value input, uint16_t bit_size, bool display_IR = true);
+				BinStringParser decToRaw(BuiltIns::Value input, uint16_t bit_size, bool display_IR = true);
 			
-				bin_string_parser RawToDec(BUILT_INS::value input, uint16_t bit_size);
+				BinStringParser rawToDec(BuiltIns::Value input, uint16_t bit_size);
 				
 			}
 
 			namespace TwosComplement {
 				
-				bin_string_parser DecToRaw(BUILT_INS::value input, uint16_t bit_size, bool display_IR = true);
+				BinStringParser decToRaw(BuiltIns::Value input, uint16_t bit_size, bool display_IR = true);
 				
-				bin_string_parser RawToDec(BUILT_INS::value input, uint16_t bit_size);
+				BinStringParser rawToDec(BuiltIns::Value input, uint16_t bit_size);
 			}
 
 
@@ -232,5 +234,3 @@ namespace BINARY_CONVERSION {
 }
 
 
-
-#endif
