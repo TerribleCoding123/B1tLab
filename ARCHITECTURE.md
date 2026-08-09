@@ -20,7 +20,7 @@ In addition, I admit that my architecture is rather unconventional, overly compl
 - [3. Values](#3-values)
   - [3.1 Value Types (`mValues` & `rValues`)](#31-value-types-mvalues-rvalues)
   - [3.2 Value Parsing & Validation](#32-value-parsing-validation)
-  - [3.3 The `value` Struct](#33-the-value-struct)
+  - [3.3 The `Value` Struct](#33-the-value-struct)
   - [3.4 Boolean Sign](#34-boolean-sign)
   - [3.5 Internal Structs](#35-internal-structs)
 - [4. Conversion Engines](#4-conversion-engines)

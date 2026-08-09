@@ -8,7 +8,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(${PROJECT_NAME})
 
-add_subdirectory(external/replxx_master)
+#for replxx 
+include(FetchContent)
+
+FetchContent_Declare(
+    
+    replxx 
+    URL 
+    "https://github.com/AmokHuginnsson/replxx/archive/refs/tags/release-0.0.4.zip"
+)
+
+FetchContent_MakeAvailable(replxx)
 
 target_sources(${PROJECT_NAME}
     PRIVATE
@@ -26,8 +36,6 @@ target_include_directories(${PROJECT_NAME}
 	view
 	conversion_modules/binary
 	built_ins
-	external/replxx_master/include
-
 )
 
 target_link_libraries(${PROJECT_NAME}  replxx )
